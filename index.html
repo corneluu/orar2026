@@ -1747,15 +1747,31 @@ function b64ToUtf8(str) {
 function cleanRomanianText(str) {
   if (typeof str !== "string") return str;
   return str
-    .replace(/SalÄ\x83|SalÄ|Sala/g, (m) => m === "Sala" ? "Sală" : "Sală")
-    .replace(/MuncÄ\x83|MuncÄ|Munca/g, (m) => m === "Munca" ? "Muncă" : "Muncă")
-    .replace(/È\x98coalÄ\x83|È\x98coalÄ|\?coala|È™coală|scoala/gi, "Școală")
-    .replace(/È™/g, "ș").replace(/È\x99/g, "ș")
-    .replace(/È›/g, "ț").replace(/È\x9b/g, "ț")
-    .replace(/È\x98/g, "Ș").replace(/È\x9a/g, "Ț")
-    .replace(/Ä\x83/g, "ă").replace(/Ä\x82/g, "Ă")
-    .replace(/Ã¢/g, "â").replace(/Ã\x82/g, "Â")
-    .replace(/Ã®/g, "î").replace(/Ã\x8e/g, "Î");
+    // Direct known category repairs
+    .replace(/Sal[─—–]â|SalÄƒ|SalÄ\x83|SalÄ|SalĂă|Sal\?/gi, "Sală")
+    .replace(/Munc[─—–]â|MuncÄƒ|MuncÄ\x83|MuncÄ|MuncĂă|Munc\?/gi, "Muncă")
+    .replace(/Facultate\s*\/\s*.*coal.*/gi, "Facultate / Școală")
+    .replace(/[╚ῼ\u255A][ÿ\u00FF]coal[─—–]â|È˜coală|È™coală|È\x98coalÄ\x83|\?coala|scoala/gi, "Școală")
+    // CP850 / CP437 / Unicode box-drawing mojibake
+    .replace(/[─—–]â/g, "ă")
+    .replace(/[─—–]┬/g, "Â")
+    .replace(/[╚ῼ\u255A][ÿ\u00FF]/g, "Ș")
+    .replace(/[╚ῼ\u255A][™\u2122\x99]/g, "ș")
+    .replace(/[╚ῼ\u255A][›\u203A\x9B]/g, "ț")
+    .replace(/[╚ῼ\u255A][š\u0161\x9A]/g, "Ț")
+    .replace(/├─/g, "î")
+    .replace(/├Ä/g, "Î")
+    // Windows-1252 / ISO-8859-1 double UTF-8 decoding
+    .replace(/Äƒ|Ä\x83|Ăă/g, "ă")
+    .replace(/Ä‚|Ä\x82|Ă‚/g, "Ă")
+    .replace(/È™|È\x99/g, "ș")
+    .replace(/È›|È\x9b/g, "ț")
+    .replace(/È˜|È\x98/g, "Ș")
+    .replace(/Èš|È\x9a/g, "Ț")
+    .replace(/Ã¢/g, "â")
+    .replace(/Ã‚/g, "Â")
+    .replace(/Ã®/g, "î")
+    .replace(/ÃŽ/g, "Î");
 }
 
 /* ==========================================================================
@@ -2187,11 +2203,19 @@ function normalize(o) {
     if (e.note) e.note = cleanRomanianText(e.note);
     if (e.loc) e.loc = cleanRomanianText(e.loc);
   });
+  const ov = d.ov && typeof d.ov === "object" ? d.ov : {};
+  for (const k of Object.keys(ov)) {
+    if (ov[k] && typeof ov[k] === "object") {
+      if (ov[k].title) ov[k].title = cleanRomanianText(ov[k].title);
+      if (ov[k].note) ov[k].note = cleanRomanianText(ov[k].note);
+      if (ov[k].loc) ov[k].loc = cleanRomanianText(ov[k].loc);
+    }
+  }
   return {
     v: 1,
     cats,
     events,
-    ov: d.ov && typeof d.ov === "object" ? d.ov : {},
+    ov,
     done: d.done && typeof d.done === "object" ? d.done : {},
     notifications: d.notifications && typeof d.notifications === "object" ? d.notifications : {}
   };
@@ -2201,6 +2225,7 @@ let S;
 try {
   const raw = localStorage.getItem("orar:data");
   S = raw ? normalize(JSON.parse(raw)) : defaults();
+  persistLocal();
 } catch (e) {
   S = defaults();
 }
