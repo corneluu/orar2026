@@ -2239,6 +2239,7 @@ function mk(e, date) {
     note: m.note || "",
     loc: m.loc || "",
     rec: !!e.rec,
+    reminder: m.reminder || null,
     done: !!S.done[key],
     changed: !!o,
     s: toMin(m.start),
@@ -2642,7 +2643,9 @@ function openEditor(o) {
     from: isRec ? base.rec.from : date,
     until: isRec ? (base.rec.until || "") : "",
     err: "",
-    deleting: false
+    deleting: false,
+    remindEnabled: (occ && occ.reminder) ? occ.reminder.enabled !== false : (base && base.reminder ? base.reminder.enabled !== false : true),
+    remindMins: (occ && occ.reminder && occ.reminder.mins) ? occ.reminder.mins : (base && base.reminder && base.reminder.mins ? base.reminder.mins : 30)
   };
 
   let scope = isRec ? "this" : "all";
@@ -2934,6 +2937,64 @@ function openEditor(o) {
         )
       ));
 
+      // 7b. Reminder Card
+      const remindPresets = [5, 10, 15, 30, 60, 120];
+      const remindLabel = m => m < 60 ? `${m} min` : `${m/60} ${m===60?"oră":"ore"}`;
+      const customIsPreset = remindPresets.includes(f.remindMins);
+
+      bodyKids.push(h("div", { class: "extra-card", style: "margin-top:10px;" },
+        h("div", { style: "display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;" },
+          h("div", null,
+            h("div", { style: "font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:6px;" },
+              "🔔 Reminder pentru acest eveniment"
+            ),
+            f.remindEnabled
+              ? h("div", { style: "font-size:12px;color:var(--ink3);margin-top:2px;" },
+                  `Cu ${remindLabel(f.remindMins)} înainte via Telegram & Email`)
+              : h("div", { style: "font-size:12px;color:var(--ink3);margin-top:2px;" }, "Reminder dezactivat")
+          ),
+          h("label", { class: "toggle-wrap" },
+            (() => {
+              const inp = h("input", { type: "checkbox" });
+              inp.checked = f.remindEnabled;
+              inp.onchange = e => { f.remindEnabled = e.target.checked; draw(); };
+              return inp;
+            })(),
+            h("span", { class: "toggle-slider" })
+          )
+        ),
+        f.remindEnabled ? h("div", null,
+          h("div", { style: "display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" },
+            ...remindPresets.map(m => {
+              const active = f.remindMins === m;
+              const btn = h("button", {
+                class: "quick-dur-btn",
+                onclick: () => { f.remindMins = m; draw(); }
+              }, remindLabel(m));
+              if (active) btn.style.cssText = "background:var(--accent);color:var(--on-accent);border-color:var(--accent);";
+              return btn;
+            })
+          ),
+          h("div", { style: "display:flex;align-items:center;gap:8px;" },
+            h("label", { class: "lab", style: "margin:0;white-space:nowrap;min-width:fit-content;" }, "Custom (minute):"),
+            h("input", {
+              class: "inp",
+              type: "number",
+              min: "1",
+              max: "1440",
+              style: "width:90px;text-align:center;",
+              value: String(f.remindMins),
+              oninput: e => {
+                const v = parseInt(e.target.value, 10);
+                if (!isNaN(v) && v > 0 && v <= 1440) { f.remindMins = v; draw(); }
+              }
+            }),
+            h("span", { style: "font-size:12px;color:var(--ink3);" },
+              `= ${f.remindMins >= 60 ? Math.floor(f.remindMins/60)+"h "+(f.remindMins%60 ? f.remindMins%60+"min":"") : f.remindMins+" min"} înainte`)
+          )
+        ) : null
+      ));
+
       // 8. Completion Status Card (if modifying)
       if (!isNew) {
         bodyKids.push(h("div", {
@@ -3057,7 +3118,8 @@ function openEditor(o) {
         start: f.start,
         end: f.end,
         loc: f.loc ? f.loc.trim() : "",
-        note: f.note.trim()
+        note: f.note.trim(),
+        reminder: { enabled: f.remindEnabled, mins: f.remindMins }
       };
       const recDef = { days: [...f.days], every: f.every, from: f.from, until: f.until || null };
       let key = null;
@@ -3084,7 +3146,9 @@ function openEditor(o) {
       } else if (scope === "this") {
         const diff = {};
         for (const k of Object.keys(fields)) {
-          if ((fields[k] || "") !== (base[k] || "")) diff[k] = fields[k];
+          const vA = typeof fields[k] === "object" && fields[k] !== null ? JSON.stringify(fields[k]) : (fields[k] || "");
+          const vB = typeof base[k] === "object" && base[k] !== null ? JSON.stringify(base[k]) : (base[k] || "");
+          if (vA !== vB) diff[k] = fields[k];
         }
         if (Object.keys(diff).length) S.ov[occ.key] = diff;
         else delete S.ov[occ.key];
@@ -3358,7 +3422,7 @@ function openNotifs() {
       const token = (n.telegramBotToken || "").trim();
       const chatId = (n.telegramChatId || "").trim();
       if (!token || !chatId) {
-        setFeedback(btn.parentNode, "error", "Introdu Bot Token si Chat ID mai intai.");
+        setFeedback(btn.parentNode, "error", "Introdu Bot Token și Chat ID mai întâi.");
         return;
       }
       btn.disabled = true;
@@ -3369,7 +3433,7 @@ function openNotifs() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: chatId,
-            text: "<b>Test Orar – Telegram functioneaza!</b>\n\nSistemul de notificari a fost configurat cu succes. Vei primi remindere automate pentru evenimentele tale!\n\n<a href=\"https://corneluu.github.io/orar2026/\">Deschide Orarul Meu</a>",
+            text: "<b>Test Orar – Telegram funcționează!</b>\n\nSistemul de notificări a fost configurat cu succes. Vei primi remindere automate pentru evenimentele tale!\n\n<a href=\"https://corneluu.github.io/orar2026/\">Deschide Orarul Meu</a>",
             parse_mode: "HTML"
           })
         });
@@ -3384,13 +3448,13 @@ function openNotifs() {
 
     async function testEmail(btn) {
       const email = (n.email || "").trim();
-      if (!email) { setFeedback(btn.parentNode, "error", "Introdu adresa de email mai intai."); return; }
+      if (!email) { setFeedback(btn.parentNode, "error", "Introdu adresa de email mai întâi."); return; }
       if (!ghToken) {
-        setFeedback(btn.parentNode, "error", "Conecteaza-te la GitHub mai intai (butonul din header).");
+        setFeedback(btn.parentNode, "error", "Conectează-te la GitHub mai întâi (butonul din header).");
         return;
       }
       btn.disabled = true;
-      setFeedback(btn.parentNode, "loading", "Se declanseaza prin GitHub Actions...");
+      setFeedback(btn.parentNode, "loading", "Se declanșează prin GitHub Actions...");
       try {
         saveN();
         const res = await fetch(
@@ -3406,7 +3470,7 @@ function openNotifs() {
           }
         );
         if (res.status === 204 || res.ok) {
-          setFeedback(btn.parentNode, "success", "Trimis! Verifica emailul in ~30-60 secunde.");
+          setFeedback(btn.parentNode, "success", "Trimis! Verifică emailul în ~30-60 secunde.");
         } else {
           const r = await res.json().catch(() => ({ message: "HTTP " + res.status }));
           throw new Error(r.message);
@@ -3424,10 +3488,10 @@ function openNotifs() {
 
       const headEl = h("div", { class: "sheet-head-pro" },
         h("div", { class: "sheet-head-info" },
-          h("h2", null, "Notificari"),
-          h("p", { class: "sub" }, "Remindere automate prin Telegram si Email.")
+          h("h2", null, "Notificări"),
+          h("p", { class: "sub" }, "Remindere automate prin Telegram și Email.")
         ),
-        h("button", { class: "sheet-close-btn", title: "Inchide", onclick: close }, "x")
+        h("button", { class: "sheet-close-btn", title: "Închide", onclick: close }, "✕")
       );
 
       // Telegram section
@@ -3441,7 +3505,7 @@ function openNotifs() {
             h("span", { style: "font-size:20px;" }, "✈"),
             h("div", null,
               h("div", { style: "font-weight:700;font-size:14px;" }, "Telegram"),
-              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasTg ? "Configurat ✓" : "Necesita bot token")
+              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasTg ? "Configurat ✓" : "Necesită bot token")
             )
           ),
           h("div", { style: "display:flex;align-items:center;gap:8px;" },
@@ -3470,12 +3534,12 @@ function openNotifs() {
         ),
         tgFeedbackRow,
         h("details", { class: "notif-guide" },
-          h("summary", null, "Cum obtii Bot Token si Chat ID?"),
+          h("summary", null, "Cum obții Bot Token și Chat ID?"),
           h("ol", { style: "font-size:12px;color:var(--ink2);margin:8px 0 0;padding-left:18px;line-height:2;" },
-            h("li", null, "Deschide Telegram, cauta @BotFather si trimite /newbot"),
-            h("li", null, "Copiaza Bot Token-ul primit"),
+            h("li", null, "Deschide Telegram, caută @BotFather și trimite /newbot"),
+            h("li", null, "Copiază Bot Token-ul primit"),
             h("li", null, "Trimite orice mesaj botului nou creat"),
-            h("li", null, "Cauta @userinfobot -> trimite /start -> copiaza Id:")
+            h("li", null, "Caută @userinfobot → trimite /start → copiază Id:")
           )
         )
       );
@@ -3491,7 +3555,7 @@ function openNotifs() {
             h("span", { style: "font-size:20px;" }, "✉️"),
             h("div", null,
               h("div", { style: "font-weight:700;font-size:14px;" }, "Email"),
-              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasEmail ? n.email : "Adauga adresa")
+              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasEmail ? n.email : "Adaugă adresa")
             )
           ),
           h("div", { style: "display:flex;align-items:center;gap:8px;" },
@@ -3518,21 +3582,21 @@ function openNotifs() {
             oninput: e => { n.resendApiKey = e.target.value.trim(); saveN(); }
           }),
           h("p", { style: "font-size:11.5px;color:var(--ink3);margin:4px 0 0;" },
-            "Obii gratuit de la resend.com (100 emailuri/zi). Stocata doar pe acest dispozitiv."
+            "Obții gratuit de la resend.com (100 emailuri/zi). Stocată doar pe acest dispozitiv."
           )
         ),
         emailFeedbackRow,
         h("details", { class: "notif-guide" },
           h("summary", null, "Cum configurezi Email-ul?"),
           h("p", { style: "font-size:12px;color:var(--ink2);margin:8px 0 0;line-height:1.8;" },
-            "Email-ul se trimite prin GitHub Actions (gratuit). Mergi la resend.com -> inregistreaza-te -> copiaza API Key -> adauga-l ca GitHub Secret cu numele RESEND_API_KEY."
+            "Email-ul se trimite prin GitHub Actions (gratuit). Mergi la resend.com → înregistrează-te → copiază API Key → adaugă-l ca GitHub Secret cu numele RESEND_API_KEY."
           )
         )
       );
 
       // Timing section
       const timingSection = h("div", { class: "notif-card", style: "margin-bottom:14px;" },
-        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:10px;" }, "Cand sa primesti remindere?"),
+        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:10px;" }, "Când să primești remindere?"),
         h("div", { style: "display:flex;flex-wrap:wrap;gap:8px;" },
           mkTimingChip(10, "10 min"),
           mkTimingChip(15, "15 min"),
@@ -3542,8 +3606,8 @@ function openNotifs() {
         ),
         h("div", { class: "notif-card-header", style: "margin-top:14px;" },
           h("div", null,
-            h("div", { style: "font-weight:700;font-size:13.5px;" }, "Sumar dimineata (08:00)"),
-            h("div", { style: "font-size:12px;color:var(--ink3);" }, "Lista evenimentelor din ziua curenta")
+            h("div", { style: "font-weight:700;font-size:13.5px;" }, "Sumar dimineața (08:00)"),
+            h("div", { style: "font-size:12px;color:var(--ink3);" }, "Lista evenimentelor din ziua curentă")
           ),
           mkToggle("morning-on", n.morningSummary, v => { n.morningSummary = v; saveN(); draw(); })
         )
@@ -3553,7 +3617,7 @@ function openNotifs() {
       const secretsSection = h("div", { class: "notif-card" },
         h("div", { style: "font-weight:700;font-size:14px;margin-bottom:8px;" }, "GitHub Secrets (backend automat)"),
         h("p", { style: "font-size:12px;color:var(--ink2);margin:0 0 8px;line-height:1.7;" },
-          "Adauga aceste secrete la: github.com -> orar2026 -> Settings -> Secrets & Variables -> Actions"
+          "Adaugă aceste secrete la: github.com → orar2026 → Settings → Secrets & Variables → Actions"
         ),
         h("div", { style: "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11.5px;font-family:monospace;line-height:2;color:var(--ink2);" },
           h("div", null, "TELEGRAM_BOT_TOKEN"),
@@ -3568,8 +3632,8 @@ function openNotifs() {
       );
 
       const footEl = h("div", { class: "sheet-foot" },
-        h("span", { style: "flex:1;font-size:11px;color:var(--ink3);" }, "Setarile se salveaza automat"),
-        h("button", { class: "btn", onclick: close }, "Inchide")
+        h("span", { style: "flex:1;font-size:11px;color:var(--ink3);" }, "Setările se salvează automat"),
+        h("button", { class: "btn", onclick: close }, "Închide")
       );
 
       box.replaceChildren(headEl, bodyEl, footEl);
