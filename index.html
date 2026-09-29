@@ -2,710 +2,1854 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0D1217" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F1F4F7" media="(prefers-color-scheme: light)">
 <title>Orarul meu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:wght@600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== TOKENS ===== */
-:root{
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#F1F4F7;--surface:#FFFFFF;--surface2:#F6F8FA;--ink:#14202B;--ink2:#5B6976;
-  --line:#DDE3E9;--line2:#EDF0F3;--accent:#0B5C8E;--on-accent:#FFFFFF;--today:#E4EFF7;
-  --danger:#B42318;--hh:56px;
-  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --font-head:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+/* ==========================================================================
+   CSS VARIABLES & DESIGN TOKENS
+   ========================================================================== */
+:root {
+  --bg: #F1F4F8;
+  --surface: #FFFFFF;
+  --surface2: #F5F7FA;
+  --surface3: #EAEFF5;
+  --ink: #0F172A;
+  --ink2: #475569;
+  --ink3: #94A3B8;
+  --line: #E2E8F0;
+  --line2: #EDF2F7;
+  --accent: #0284C7;
+  --accent-light: #E0F2FE;
+  --on-accent: #FFFFFF;
+  --today: #E0F2FE;
+  --today-border: #38BDF8;
+  --danger: #DC2626;
+  --danger-light: #FEE2E2;
+  --success: #16A34A;
+  --success-light: #DCFCE7;
+  --hh: 56px;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-head: "Bricolage Grotesque", var(--font-ui);
 }
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0D1217;--surface:#151C23;--surface2:#1A222A;--ink:#E6ECF1;--ink2:#93A1AE;
-  --line:#2A343E;--line2:#212A33;--accent:#5DB2E8;--on-accent:#07131C;--today:#12222F;--danger:#F97066;
-}}
-:root[data-theme="dark"]{
-  --bg:#0D1217;--surface:#151C23;--surface2:#1A222A;--ink:#E6ECF1;--ink2:#93A1AE;
-  --line:#2A343E;--line2:#212A33;--accent:#5DB2E8;--on-accent:#07131C;--today:#12222F;--danger:#F97066;
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #090D12;
+    --surface: #121820;
+    --surface2: #18222D;
+    --surface3: #202D3B;
+    --ink: #F1F5F9;
+    --ink2: #94A3B8;
+    --ink3: #64748B;
+    --line: #263342;
+    --line2: #1C2633;
+    --accent: #38BDF8;
+    --accent-light: #0C4A6E;
+    --on-accent: #082F49;
+    --today: #0C4A6E;
+    --today-border: #38BDF8;
+    --danger: #EF4444;
+    --danger-light: #450A0A;
+    --success: #22C55E;
+    --success-light: #052E16;
+  }
 }
 
-/* ===== RESET ===== */
-html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
-*,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.4 var(--font-ui);min-height:100%;-webkit-text-size-adjust:100%}
-button,input,textarea,select{font:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-/* ===== LAYOUT ===== */
-.app{max-width:1280px;margin:0 auto;padding:14px 14px 28px}
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-h1{font:700 26px/1.1 var(--font-head);margin:0;letter-spacing:-.01em}
-#status{font-size:12.5px;color:var(--ink2)}
-#status.err{color:var(--danger)}
-#status.ok{color:#16A34A}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-.spacer{flex:1}
-
-/* ===== BUTTONS ===== */
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-weight:500;font-size:14px;line-height:1.2;transition:background .12s}
-.btn:hover{background:var(--surface2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.danger{color:var(--danger)}
-.btn.icon{padding:7px 11px;min-width:38px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
-.seg button{border:0;background:transparent;padding:7px 13px;font-weight:500;font-size:14px}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
-
-/* ===== LEGEND & TOTALS ===== */
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.lg{--c:#888;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px 4px 8px;font-size:13px}
-.lg i{width:10px;height:10px;border-radius:50%;background:var(--c);display:inline-block}
-.lg[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
-.totals{font-size:13px;color:var(--ink2);margin:0 0 10px}
-.totals b{color:var(--ink);font-weight:600}
-
-/* ===== MONTH VIEW ===== */
-.month{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.mh,.mr{display:grid;grid-template-columns:34px repeat(7,minmax(0,1fr))}
-.mh{background:var(--surface2);border-bottom:1px solid var(--line)}
-.mh div{padding:7px 6px;font-size:12.5px;color:var(--ink2);font-weight:600}
-.mr+.mr{border-top:1px solid var(--line)}
-.wk{border:0;border-right:1px solid var(--line);background:var(--surface2);color:var(--ink2);font-size:11.5px;font-weight:600;padding:6px 0}
-.wk:hover{background:var(--today);color:var(--accent)}
-.cell{min-height:104px;padding:4px;border-right:1px solid var(--line2);display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0}
-.cell:last-child{border-right:0}
-.cell.other{background:var(--surface2)}
-.cell.other .dn{color:var(--ink2);opacity:.7}
-.dn{font-size:12.5px;font-weight:600;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;align-self:flex-start}
-.cell.today .dn{background:var(--accent);color:var(--on-accent)}
-.chip{--c:#888;display:block;width:100%;text-align:left;border:0;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 17%,var(--surface));border-radius:4px;padding:1px 5px;font-size:12px;line-height:1.35;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.chip:hover{background:color-mix(in srgb,var(--c) 28%,var(--surface))}
-.chip.done{opacity:.5;text-decoration:line-through}
-.chip .t{color:var(--ink2);margin-right:4px}
-.more{border:0;background:transparent;color:var(--ink2);font-size:12px;text-align:left;padding:0 4px}
-
-/* ===== TIME GRID ===== */
-.gw{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:auto;height:calc(100dvh - 250px);min-height:440px;position:relative}
-.g{display:grid;position:relative}
-.corner,.dh{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
-.corner{left:0;z-index:7}
-.dh{padding:7px 4px;text-align:center;border-left:1px solid var(--line2);cursor:pointer}
-.dh:hover{background:var(--surface2)}
-.dh small{display:block;color:var(--ink2);font-size:12px;font-weight:600}
-.dh span{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:14px;font:700 16px var(--font-head);padding:0 4px}
-.dh.today span{background:var(--accent);color:var(--on-accent)}
-.tc{position:sticky;left:0;z-index:4;background:var(--surface)}
-.tc div{position:absolute;right:6px;font-size:11.5px;color:var(--ink2);transform:translateY(-50%)}
-.dc{position:relative;border-left:1px solid var(--line2);cursor:cell;
-  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(var(--line2) 1px,transparent 1px);
-  background-size:100% var(--hh),100% calc(var(--hh)/2)}
-.dc.today{background-color:var(--today)}
-.ev{--c:#888;position:absolute;overflow:hidden;border-radius:6px;border-left:4px solid var(--c);
-  background:color-mix(in srgb,var(--c) 20%,var(--surface));padding:2px 5px;font-size:12.5px;line-height:1.25;cursor:pointer;
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent);text-align:left;border-top:0;border-right:0;border-bottom:0;color:var(--ink)}
-.ev:hover{background:color-mix(in srgb,var(--c) 32%,var(--surface));z-index:3}
-.ev .tm{color:var(--ink2);font-size:11.5px;display:block}
-.ev b{font-weight:600}
-.ev.done{opacity:.55}
-.ev.done b{text-decoration:line-through}
-.ev .ck{position:absolute;top:3px;right:3px;width:17px;height:17px;border-radius:5px;border:1.5px solid var(--c);background:var(--surface);padding:0;display:grid;place-items:center;font-size:11px;line-height:1;color:var(--on-accent)}
-.ev.done .ck{background:var(--c)}
-.nowline{position:absolute;left:0;right:0;height:0;border-top:2px solid #E5484D;z-index:2;pointer-events:none}
-.nowline::before{content:"";position:absolute;left:-1px;top:-5px;width:8px;height:8px;border-radius:50%;background:#E5484D}
-
-/* ===== MODAL ===== */
-.ov{position:fixed;inset:0;background:rgba(8,14,20,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;backdrop-filter:blur(2px)}
-.sheet{background:var(--surface);border-radius:16px;width:100%;max-width:540px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
-.sheet h2{font:700 20px/1.2 var(--font-head);margin:0 0 14px}
-.sub{color:var(--ink2);font-size:13.5px;margin:-8px 0 14px}
-.fld{margin-bottom:14px}
-.fld>label,.lab{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:5px}
-.inp,textarea.inp,select.inp{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;font-size:15px;transition:border-color .15s}
-.inp:focus{border-color:var(--accent);outline:none}
-textarea.inp{resize:vertical;min-height:64px}
-.row{display:flex;gap:10px}
-.row>*{flex:1;min-width:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.pick{--c:#888;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13.5px;transition:all .12s}
-.pick i{width:10px;height:10px;border-radius:50%;background:var(--c)}
-.pick[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--surface));font-weight:600}
-.dpick{width:40px;height:36px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:13px;padding:0}
-.dpick[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.chk-row{display:flex;align-items:center;gap:8px;font-size:14.5px}
-.chk-row input{width:18px;height:18px;accent-color:var(--accent)}
-.foot{display:flex;gap:8px;align-items:center;margin-top:18px;flex-wrap:wrap}
-.ferr{color:var(--danger);font-size:13.5px;margin:6px 0 0;display:flex;align-items:center;gap:5px}
-.hint{font-size:13px;color:var(--ink2);margin:6px 0 0}
-.info-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13.5px;line-height:1.6}
-
-/* ===== CATEGORIES EDITOR ===== */
-.cat-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.catrow{display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:box-shadow .15s}
-.catrow:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
-.color-btn{width:36px;height:36px;border-radius:10px;border:2px solid rgba(0,0,0,.12);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;transition:transform .12s,box-shadow .12s;position:relative}
-.color-btn:hover{transform:scale(1.08);box-shadow:0 3px 10px rgba(0,0,0,.2)}
-.color-btn:active{transform:scale(.95)}
-.color-btn .cb-dot{width:20px;height:20px;border-radius:6px;background:currentColor}
-.cat-name-inp{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;font-size:14px;transition:border-color .15s}
-.cat-name-inp:focus{border-color:var(--accent);outline:none}
-.del-cat-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);display:grid;place-items:center;font-size:16px;flex-shrink:0;transition:all .12s}
-.del-cat-btn:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 12%,var(--surface));color:var(--danger);border-color:var(--danger)}
-.del-cat-btn:disabled{opacity:.3;cursor:not-allowed}
-.add-cat-btn{display:flex;align-items:center;gap:8px;border:2px dashed var(--line);background:transparent;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:500;color:var(--ink2);width:100%;justify-content:center;transition:all .15s}
-.add-cat-btn:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
-
-/* ===== COLOR PICKER ===== */
-.cp-overlay{position:fixed;inset:0;z-index:200}
-.cp-wrap{position:fixed;z-index:201;background:var(--surface);border:1px solid var(--line);border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.06);padding:16px;width:280px;
-  animation:cp-in .15s cubic-bezier(.2,.8,.3,1)}
-@keyframes cp-in{from{opacity:0;transform:scale(.93) translateY(-6px)}to{opacity:1;transform:none}}
-.cp-canvas-wrap{position:relative;width:100%;height:160px;border-radius:10px;overflow:hidden;cursor:crosshair;margin-bottom:12px;touch-action:none}
-.cp-canvas-wrap canvas{width:100%;height:100%;display:block}
-.cp-thumb{position:absolute;width:18px;height:18px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:none;transition:box-shadow .1s}
-.cp-thumb:hover{box-shadow:0 1px 6px rgba(0,0,0,.7)}
-.cp-sliders{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-.cp-slider-row{display:flex;align-items:center;gap:10px}
-.cp-slider-label{font-size:11px;font-weight:600;color:var(--ink2);width:14px;text-align:center;flex-shrink:0}
-.cp-hue-track,.cp-alpha-track{position:relative;height:14px;border-radius:7px;cursor:pointer;flex:1;touch-action:none}
-.cp-hue-track{background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
-.cp-alpha-track{background-image:linear-gradient(to right,transparent,var(--cp-color,#f00)),
-  repeating-conic-gradient(#ccc 0%25%,#fff 0%50%) 0 0/12px 12px}
-.cp-slider-thumb{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);transform:translate(-50%,-50%);pointer-events:none;transition:left .02s}
-.cp-bottom{display:flex;gap:10px;align-items:flex-start}
-.cp-preview{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);flex-shrink:0;background:var(--cp-color,#f00);
-  background-image:repeating-conic-gradient(#ccc 0%25%,#fff 0%50%) 0 0/16px 16px;background-size:16px 16px;position:relative;overflow:hidden}
-.cp-preview::after{content:"";position:absolute;inset:0;background:var(--cp-color,#f00);border-radius:inherit}
-.cp-inputs{flex:1;display:flex;flex-direction:column;gap:6px}
-.cp-hex-row{display:flex;gap:6px;align-items:center}
-.cp-hex-label{font-size:11px;font-weight:600;color:var(--ink2);width:22px}
-.cp-hex-inp{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:13px;font-family:monospace;text-transform:uppercase;transition:border-color .15s}
-.cp-hex-inp:focus{border-color:var(--accent);outline:none}
-.cp-rgb-row{display:flex;gap:4px}
-.cp-rgb-row input{width:0;flex:1;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:4px 6px;font-size:12px;text-align:center;transition:border-color .15s}
-.cp-rgb-row input:focus{border-color:var(--accent);outline:none}
-.cp-swatches-title{font-size:11px;font-weight:600;color:var(--ink2);margin:12px 0 7px;letter-spacing:.03em;text-transform:uppercase}
-.cp-swatches{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:4px}
-.cp-swatch{width:100%;aspect-ratio:1;border-radius:6px;border:1.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s}
-.cp-swatch:hover{transform:scale(1.15);box-shadow:0 2px 8px rgba(0,0,0,.25);border-color:rgba(255,255,255,.5)}
-.cp-swatch.active{border-color:#fff;box-shadow:0 0 0 2px var(--line),0 2px 6px rgba(0,0,0,.2)}
-
-@media(max-width:640px){
-  .app{padding:10px 8px 24px}
-  h1{font-size:22px}
-  .cell{min-height:84px;padding:3px 2px}
-  .chip{font-size:11px;padding:1px 3px}
-  .chip .t{display:none}
-  .mh div{padding:6px 2px;font-size:11px;text-align:center}
-  .gw{height:calc(100dvh - 300px);min-height:400px}
-  .ov{align-items:flex-end;padding:0}
-  .sheet{border-radius:16px 16px 0 0;max-height:92dvh;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
-  .cp-wrap{width:calc(100vw - 24px);left:12px!important;right:12px!important}
+:root[data-theme="dark"] {
+  --bg: #090D12;
+  --surface: #121820;
+  --surface2: #18222D;
+  --surface3: #202D3B;
+  --ink: #F1F5F9;
+  --ink2: #94A3B8;
+  --ink3: #64748B;
+  --line: #263342;
+  --line2: #1C2633;
+  --accent: #38BDF8;
+  --accent-light: #0C4A6E;
+  --on-accent: #082F49;
+  --today: #0C4A6E;
+  --today-border: #38BDF8;
+  --danger: #EF4444;
+  --danger-light: #450A0A;
+  --success: #22C55E;
+  --success-light: #052E16;
 }
-@media(prefers-reduced-motion:no-preference){
-  .sheet{animation:up .18s cubic-bezier(.2,.8,.3,1)}
-  @keyframes up{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+/* ==========================================================================
+   RESET & MOBILE-FIRST BASE
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  height: 100%;
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.4 var(--font-ui);
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  overflow-x: hidden;
+}
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   APP HEADER & NAVIGATION TOOLBAR
+   ========================================================================== */
+.app {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 12px 14px 28px;
+}
+
+/* Top bar: Title + Status + Action */
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+h1 {
+  font: 700 22px/1.2 var(--font-head);
+  margin: 0;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--ink2);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.status-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink3);
+}
+.status-pill.ok {
+  background: var(--success-light);
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+}
+.status-pill.ok .dot {
+  background: var(--success);
+}
+.status-pill.saving {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.status-pill.saving .dot {
+  background: var(--accent);
+  animation: pulse 1s infinite alternate;
+}
+.status-pill.err {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+.status-pill.err .dot {
+  background: var(--danger);
+}
+@keyframes pulse {
+  from { opacity: 0.3; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Secondary controls bar */
+.controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.nav-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.nav-group button {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  transition: background 0.12s;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-group button:active {
+  background: var(--surface2);
+}
+.nav-group button + button {
+  border-left: 1px solid var(--line);
+}
+.nav-group .icon-btn {
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
+.view-segment {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.view-segment button {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  min-height: 38px;
+  transition: all 0.15s;
+}
+.view-segment button + button {
+  border-left: 1px solid var(--line);
+}
+.view-segment button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 8px 13px;
+  font-weight: 600;
+  font-size: 13.5px;
+  min-height: 38px;
+  line-height: 1;
+  transition: transform 0.08s, background 0.12s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.btn:active {
+  transform: scale(0.97);
+  background: var(--surface2);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.btn.primary:active {
+  filter: brightness(0.95);
+}
+.btn.danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
+}
+.btn.icon {
+  padding: 8px 10px;
+  min-width: 38px;
+}
+
+/* Category Legend bar (Horizontal scrollable on mobile) */
+.legend-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 10px;
+  margin-bottom: 6px;
+  scrollbar-width: none;
+}
+.legend-scroll::-webkit-scrollbar {
+  display: none;
+}
+.lg {
+  --c: #888;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 12px 5px 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+.lg:active {
+  transform: scale(0.96);
+}
+.lg i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+  flex-shrink: 0;
+}
+.lg[aria-pressed="false"] {
+  opacity: 0.45;
+  text-decoration: line-through;
+  background: var(--surface2);
+}
+
+.totals {
+  font-size: 13px;
+  color: var(--ink2);
+  margin: 0 0 10px;
+  padding: 0 2px;
+}
+.totals b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   MONTH VIEW (Responsive & Touch Friendly)
+   ========================================================================== */
+.month {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+.mh, .mr {
+  display: grid;
+  grid-template-columns: 34px repeat(7, minmax(0, 1fr));
+}
+.mh {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--line);
+}
+.mh div {
+  padding: 8px 4px;
+  font-size: 12px;
+  color: var(--ink2);
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.mr + .mr {
+  border-top: 1px solid var(--line2);
+}
+.wk {
+  border: 0;
+  border-right: 1px solid var(--line2);
+  background: var(--surface2);
+  color: var(--ink3);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+.wk:active {
+  background: var(--today);
+  color: var(--accent);
+}
+.cell {
+  min-height: 98px;
+  padding: 4px;
+  border-right: 1px solid var(--line2);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+  min-width: 0;
+  transition: background 0.1s;
+}
+.cell:last-child {
+  border-right: 0;
+}
+.cell:active {
+  background: var(--surface2);
+}
+.cell.other {
+  background: color-mix(in srgb, var(--surface2) 70%, var(--surface));
+}
+.cell.other .dn {
+  color: var(--ink3);
+}
+.cell.today {
+  background: color-mix(in srgb, var(--today) 35%, var(--surface));
+}
+.dn {
+  font-size: 12.5px;
+  font-weight: 700;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  align-self: flex-start;
+  color: var(--ink);
+}
+.cell.today .dn {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.chip {
+  --c: #888;
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-left: 3.5px solid var(--c);
+  background: color-mix(in srgb, var(--c) 15%, var(--surface));
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11.5px;
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink);
+  font-weight: 500;
+  transition: transform 0.08s;
+}
+.chip:active {
+  transform: scale(0.97);
+}
+.chip.done {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.chip .t {
+  color: var(--ink2);
+  margin-right: 3px;
+  font-weight: 400;
+}
+.more-pill {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  padding: 2px 4px;
+}
+
+/* ==========================================================================
+   TIME GRID (WEEK / DAY VIEW)
+   ========================================================================== */
+.gw {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: auto;
+  height: calc(100dvh - 240px);
+  min-height: 440px;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+.g {
+  display: grid;
+  position: relative;
+}
+.corner, .dh {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.corner {
+  left: 0;
+  z-index: 7;
+  border-right: 1px solid var(--line);
+}
+.dh {
+  padding: 8px 4px;
+  text-align: center;
+  border-left: 1px solid var(--line2);
+  cursor: pointer;
+}
+.dh small {
+  display: block;
+  color: var(--ink2);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.dh span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  font: 700 15px var(--font-head);
+  padding: 0 4px;
+  margin-top: 2px;
+}
+.dh.today span {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.tc {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+.tc div {
+  position: absolute;
+  right: 6px;
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 600;
+  transform: translateY(-50%);
+}
+.dc {
+  position: relative;
+  border-left: 1px solid var(--line2);
+  cursor: cell;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(var(--line2) 1px, transparent 1px);
+  background-size: 100% var(--hh), 100% calc(var(--hh) / 2);
+}
+.dc.today {
+  background-color: color-mix(in srgb, var(--today) 20%, transparent);
+}
+.ev {
+  --c: #888;
+  position: absolute;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--c);
+  background: color-mix(in srgb, var(--c) 20%, var(--surface));
+  padding: 3px 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  text-align: left;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  color: var(--ink);
+  transition: transform 0.08s, box-shadow 0.1s;
+}
+.ev:active {
+  transform: scale(0.98);
+}
+.ev .tm {
+  color: var(--ink2);
+  font-size: 10.5px;
+  display: block;
+}
+.ev b {
+  font-weight: 700;
+}
+.ev.done {
+  opacity: 0.55;
+}
+.ev.done b {
+  text-decoration: line-through;
+}
+.ev .ck {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--c);
+  background: var(--surface);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--on-accent);
+}
+.ev.done .ck {
+  background: var(--c);
+}
+.nowline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid #E5484D;
+  z-index: 2;
+  pointer-events: none;
+}
+.nowline::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E5484D;
+}
+
+/* ==========================================================================
+   MODAL DIALOG / MOBILE BOTTOM SHEET
+   ========================================================================== */
+.ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.sheet {
+  background: var(--surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+  animation: sheet-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes sheet-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.sheet-head {
+  padding: 20px 20px 10px;
+  flex-shrink: 0;
+}
+.sheet-head h2 {
+  font: 700 20px/1.2 var(--font-head);
+  margin: 0;
+}
+.sheet-head .sub {
+  color: var(--ink2);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.sheet-body {
+  padding: 10px 20px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.sheet-foot {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line2);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Form inputs (Prevent iOS auto-zoom by enforcing 16px) */
+.fld {
+  margin-bottom: 14px;
+}
+.fld > label, .lab {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+  margin-bottom: 6px;
+}
+.inp, textarea.inp, select.inp {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 16px; /* 16px prevents iOS Safari auto zoom */
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+.inp:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+textarea.inp {
+  resize: vertical;
+  min-height: 64px;
+  font-size: 15px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+}
+.row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Day of week picker buttons */
+.dpick-row {
+  display: flex;
+  gap: 6px;
+}
+.dpick {
+  flex: 1;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transition: all 0.12s;
+}
+.dpick:active {
+  transform: scale(0.94);
+}
+.dpick[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.chk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.chk-row input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.err-msg {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 8px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   CATEGORIES MANAGER
+   ========================================================================== */
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.catrow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+.color-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: transform 0.1s;
+}
+.color-btn:active {
+  transform: scale(0.92);
+}
+.cat-name-inp {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 15px;
+  color: var(--ink);
+}
+.cat-name-inp:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.del-cat-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink2);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.del-cat-btn:active:not(:disabled) {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+.del-cat-btn:disabled {
+  opacity: 0.3;
+}
+.add-cat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed var(--line);
+  background: transparent;
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  width: 100%;
+  transition: all 0.12s;
+}
+.add-cat-btn:active {
+  background: var(--accent-light);
+}
+
+/* ==========================================================================
+   PROFESSIONAL COLOR PICKER (Desktop & Mobile Optimized)
+   ========================================================================== */
+.cp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.4);
+}
+.cp-wrap {
+  position: fixed;
+  z-index: 101;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  padding: 16px;
+  width: 310px;
+  max-width: calc(100vw - 20px);
+}
+.cp-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: crosshair;
+  margin-bottom: 12px;
+  touch-action: none;
+}
+.cp-canvas-wrap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.cp-thumb {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.cp-hue-track {
+  position: relative;
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+  touch-action: none;
+  margin-bottom: 12px;
+}
+.cp-hue-thumb {
+  position: absolute;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.cp-bottom {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cp-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  flex-shrink: 0;
+}
+.cp-hex-inp {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.cp-hex-inp:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.cp-swatches-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink2);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.cp-swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cp-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.cp-swatch:active {
+  transform: scale(0.9);
+}
+.cp-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.cp-done-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 0;
+  border-radius: var(--radius);
+  padding: 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   MOBILE-SPECIFIC ENHANCEMENTS (< 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .app {
+    padding: 8px 8px 20px;
+  }
+  h1 {
+    font-size: 19px;
+  }
+  .top-header {
+    margin-bottom: 8px;
+  }
+  .controls-bar {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .nav-group button, .view-segment button, .btn {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .cell {
+    min-height: 74px;
+    padding: 2px;
+  }
+  .dn {
+    font-size: 11.5px;
+    width: 20px;
+    height: 20px;
+  }
+  .chip {
+    font-size: 10.5px;
+    padding: 1.5px 3px;
+  }
+  .chip .t {
+    display: none;
+  }
+  .mh div {
+    padding: 6px 1px;
+    font-size: 10.5px;
+  }
+  .gw {
+    height: calc(100dvh - 220px);
+    min-height: 380px;
+  }
+  
+  /* Mobile Bottom Sheet Modal */
+  .ov {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .sheet {
+    border-radius: 20px 20px 0 0;
+    max-height: 92dvh;
+    animation: sheet-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sheet::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ink3);
+    margin: 8px auto 0;
+    opacity: 0.5;
+  }
+  @keyframes sheet-slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .sheet-head {
+    padding: 12px 16px 8px;
+  }
+  .sheet-body {
+    padding: 8px 16px 16px;
+  }
+  .sheet-foot {
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Color picker on mobile bottom sheet */
+  .cp-wrap {
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    animation: sheet-slide-up 0.2s ease-out;
+  }
 }
 </style>
 </head>
 <body>
+
 <div class="app">
-  <div class="top">
-    <h1 id="title">Orarul meu</h1>
-    <span id="status" aria-live="polite"></span>
-  </div>
-  <div class="bar">
-    <button class="btn icon" id="prev" aria-label="Înapoi">&#8249;</button>
-    <button class="btn" id="today">Astăzi</button>
-    <button class="btn icon" id="next" aria-label="Înainte">&#8250;</button>
-    <div class="seg" id="views" role="group" aria-label="Vizualizare">
+  <!-- Top header: Month/Year + Status Pill + Action Buttons -->
+  <header class="top-header">
+    <div class="title-wrap">
+      <h1 id="title">Orarul meu</h1>
+      <div id="status-pill" class="status-pill" aria-live="polite">
+        <span class="dot"></span>
+        <span id="status-text">Se inițializează…</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn icon" id="cats" title="Gestionează categoriile" aria-label="Categorii">🎨</button>
+      <button class="btn icon" id="settings" title="Sincronizare" aria-label="Sincronizare">⚙</button>
+      <button class="btn primary" id="add">+ Eveniment</button>
+    </div>
+  </header>
+
+  <!-- Secondary controls bar -->
+  <div class="controls-bar">
+    <div class="nav-group" role="group" aria-label="Navigare dată">
+      <button class="icon-btn" id="prev" aria-label="Înapoi">&#8249;</button>
+      <button id="today">Astăzi</button>
+      <button class="icon-btn" id="next" aria-label="Înainte">&#8250;</button>
+    </div>
+
+    <div class="view-segment" id="views" role="group" aria-label="Vizualizare">
       <button data-v="month">Lună</button>
-      <button data-v="week">Săptămână</button>
+      <button data-v="week">Săpt</button>
       <button data-v="day">Zi</button>
     </div>
-    <div class="seg" id="zoom" role="group" aria-label="Zoom">
-      <button id="zout" aria-label="Micșorează">&minus;</button>
-      <button id="zin" aria-label="Mărește">+</button>
+
+    <div class="nav-group" id="zoom" role="group" aria-label="Zoom ore" style="display:none;">
+      <button class="icon-btn" id="zout" aria-label="Micșorează ore">&minus;</button>
+      <button class="icon-btn" id="zin" aria-label="Mărește ore">+</button>
     </div>
-    <span class="spacer"></span>
-    <button class="btn" id="cats">Categorii</button>
-    <button class="btn" id="settings" title="Configurare sync">⚙ Sync</button>
-    <button class="btn primary" id="add">+ Eveniment</button>
   </div>
-  <div class="legend" id="legend"></div>
+
+  <!-- Categories filter legend (horizontal scroll on touch) -->
+  <div class="legend-scroll" id="legend"></div>
+
+  <!-- Weekly / daily totals indicator -->
   <p class="totals" id="totals"></p>
-  <div id="main"></div>
+
+  <!-- Main view area -->
+  <main id="main"></main>
 </div>
 
 <script>
-(function(){
+(function() {
 "use strict";
 
-/* =====================================================================
-   UTILITIES
-   ===================================================================== */
-const $=(s,r=document)=>r.querySelector(s);
-function h(tag,attrs,...kids){
-  const e=document.createElement(tag);
-  for(const[k,v]of Object.entries(attrs||{})){
-    if(v==null||v===false)continue;
-    if(k==='class')e.className=v;
-    else if(k==='style')e.style.cssText=v;
-    else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);
-    else if(k==='value')e.value=v;
-    else if(k==='checked')e.checked=!!v;
-    else e.setAttribute(k,v===true?'':v);
+/* ==========================================================================
+   UTF-8 SAFE BASE64 ENCODER & DECODER (Handles Romanian diacritics perfectly)
+   ========================================================================== */
+function utf8ToB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binStr = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binStr += String.fromCharCode(bytes[i]);
   }
-  for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)));}
+  return btoa(binStr);
+}
+
+function b64ToUtf8(str) {
+  const binStr = atob(str.replace(/\s/g, ""));
+  const bytes = new Uint8Array(binStr.length);
+  for (let i = 0; i < binStr.length; i++) {
+    bytes[i] = binStr.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+/* Auto-repair function for any legacy corrupted text (Mojibake) */
+function cleanRomanianText(str) {
+  if (typeof str !== "string") return str;
+  return str
+    .replace(/SalÄ\x83|SalÄ|Sala/g, (m) => m === "Sala" ? "Sală" : "Sală")
+    .replace(/MuncÄ\x83|MuncÄ|Munca/g, (m) => m === "Munca" ? "Muncă" : "Muncă")
+    .replace(/È\x98coalÄ\x83|È\x98coalÄ|\?coala|È™coală|scoala/gi, "Școală")
+    .replace(/È™/g, "ș").replace(/È\x99/g, "ș")
+    .replace(/È›/g, "ț").replace(/È\x9b/g, "ț")
+    .replace(/È\x98/g, "Ș").replace(/È\x9a/g, "Ț")
+    .replace(/Ä\x83/g, "ă").replace(/Ä\x82/g, "Ă")
+    .replace(/Ã¢/g, "â").replace(/Ã\x82/g, "Â")
+    .replace(/Ã®/g, "î").replace(/Ã\x8e/g, "Î");
+}
+
+/* ==========================================================================
+   DOM & DATE UTILITIES
+   ========================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "style") e.style.cssText = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else if (k === "checked") e.checked = !!v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) {
+    if (c == null || c === false) continue;
+    e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
   return e;
 }
-const pad=n=>String(n).padStart(2,'0');
-const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
-const addD=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d);};
-const dnum=s=>{const[y,m,d]=s.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5);};
-const dow=s=>(dnum(s)+3)%7;
-const mondayOf=s=>addD(s,-dow(s));
-const weekOf=s=>Math.floor(dnum(mondayOf(s))/7);
-function isoWeek(s){const dn=dnum(s);const thu=dn-dow(s)+3;const y=new Date(thu*864e5).getUTCFullYear();const j=Math.round(Date.UTC(y,0,1)/864e5);return Math.floor((thu-j)/7)+1;}
-const toMin=t=>{const[a,b]=t.split(':').map(Number);return a*60+b;};
-const fmtDur=m=>{const hh=Math.floor(m/60),mm=m%60;return hh?(mm?hh+'h'+pad(mm):hh+'h'):mm+'min';};
-const uid=()=>'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const DAYS=['Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă','Duminică'];
-const DAYS3=['Lun','Mar','Mie','Joi','Vin','Sâm','Dum'];
-const DAYS1=['L','M','M','J','V','S','D'];
-const MONTHS=['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
-const MS=['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
-const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const isSmall=()=>window.innerWidth<=640;
 
-/* =====================================================================
-   COLOR MATH
-   ===================================================================== */
-function hsvToRgb(h,s,v){
-  h=((h%360)+360)%360;
-  const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;
-  let r=0,g=0,b=0;
-  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}
-  else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
-  return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+const pad = n => String(n).padStart(2, "0");
+const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addD = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const dnum = s => { const [y, m, d] = s.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 864e5); };
+const dow = s => (dnum(s) + 3) % 7; // 0 = Luni
+const mondayOf = s => addD(s, -dow(s));
+const weekOf = s => Math.floor(dnum(mondayOf(s)) / 7);
+function isoWeek(s) {
+  const dn = dnum(s);
+  const thu = dn - dow(s) + 3;
+  const y = new Date(thu * 864e5).getUTCFullYear();
+  const j = Math.round(Date.UTC(y, 0, 1) / 864e5);
+  return Math.floor((thu - j) / 7) + 1;
 }
-function rgbToHsv(r,g,b){
-  r/=255;g/=255;b/=255;
-  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
-  let h=0,s=max===0?0:d/max,v=max;
-  if(d!==0){
-    if(max===r)h=((g-b)/d+6)%6;
-    else if(max===g)h=(b-r)/d+2;
-    else h=(r-g)/d+4;
-    h*=60;
+const toMin = t => { const [a, b] = t.split(":").map(Number); return a * 60 + b; };
+const fmtDur = m => { const hh = Math.floor(m / 60), mm = m % 60; return hh ? (mm ? hh + "h " + pad(mm) : hh + "h") : mm + "min"; };
+const uid = () => "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const DAYS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică"];
+const DAYS3 = ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"];
+const DAYS1 = ["L", "M", "M", "J", "V", "S", "D"];
+const MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+const MS = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const isSmall = () => window.innerWidth <= 640;
+
+/* ==========================================================================
+   COLOR CONVERSIONS
+   ========================================================================== */
+function hsvToRgb(h, s, v) {
+  h = ((h % 360) + 360) % 360;
+  const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { r = c; b = x; }
+  else if (h < 240) { r = x; b = c; }
+  else if (h < 300) { r = c; b = x; }
+  else { r = x; b = c; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0, s = max === 0 ? 0 : d / max, v = max;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
   }
-  return[h,s,v];
+  return [h, s, v];
 }
-function hexToRgb(hex){
-  hex=hex.replace(/^#/,'');
-  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
-  const n=parseInt(hex,16);
-  return[(n>>16)&255,(n>>8)&255,n&255];
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/, "");
+  if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+  const n = parseInt(hex, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
-function rgbToHex(r,g,b){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');}
-function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function isLight(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 160;
+}
 
-/* =====================================================================
+/* ==========================================================================
    COLOR PICKER COMPONENT
-   ===================================================================== */
-const SWATCHES=[
-  // Reds
-  '#FF0000','#FF3B30','#FF6B6B','#FF8A80','#FFCDD2',
-  // Pinks / purples
-  '#FF2D55','#FF375F','#E91E63','#9C27B0','#673AB7',
-  // Blues
-  '#007AFF','#0B5C8E','#2196F3','#03A9F4','#00BCD4',
-  // Teals / greens
-  '#009688','#4CAF50','#16A34A','#8BC34A','#CDDC39',
-  // Yellows / oranges
-  '#FFEB3B','#FFC107','#FF9800','#FF5722','#EA580C',
-  // Browns / greys / darks
-  '#795548','#9E9E9E','#607D8B','#37474F','#212121',
-  // Pastels
-  '#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF',
-  // Extra
-  '#F06292','#CE93D8','#80DEEA','#A5D6A7','#64748B',
+   ========================================================================== */
+const SWATCHES = [
+  "#16A34A", "#22C55E", "#10B981", "#06B6D4", "#0284C7", "#2563EB", "#4F46E5", "#7C3AED",
+  "#9333EA", "#C026D3", "#DB2777", "#E11D48", "#DC2626", "#EA580C", "#D97706", "#CA8A04",
+  "#65A30D", "#14B8A6", "#0EA5E9", "#3B82F6", "#6366F1", "#8B5CF6", "#A855F7", "#EC4899",
+  "#F43F5E", "#EF4444", "#F97316", "#F59E0B", "#EAB308", "#84CC16", "#64748B", "#475569"
 ];
 
-let activePicker=null;
+let activePicker = null;
 
-function openColorPicker(anchorEl, currentHex, onPick){
-  // Close existing
-  if(activePicker){activePicker.destroy();activePicker=null;}
+function openColorPicker(anchorEl, currentHex, onPick) {
+  if (activePicker) { activePicker.destroy(); activePicker = null; }
 
-  let hex=currentHex||'#0B5C8E';
-  let[r,g,b]=hexToRgb(hex);
-  let[hh,ss,vv]=rgbToHsv(r,g,b);
+  let hex = currentHex || "#0284C7";
+  let [r, g, b] = hexToRgb(hex);
+  let [hh, ss, vv] = rgbToHsv(r, g, b);
 
-  // Build DOM
-  const overlay=h('div',{class:'cp-overlay',onclick:e=>{if(e.target===overlay)destroy();}});
-  const wrap=h('div',{class:'cp-wrap'});
+  const overlay = h("div", { class: "cp-overlay", onclick: e => { if (e.target === overlay) destroy(); } });
+  const wrap = h("div", { class: "cp-wrap" });
 
-  // Position
-  const rect=anchorEl.getBoundingClientRect();
-  const spaceBelow=window.innerHeight-rect.bottom;
-  if(isSmall()){
-    wrap.style.cssText='bottom:0;left:12px;right:12px;width:auto;border-radius:16px 16px 0 0;position:fixed';
-  } else {
-    const top=spaceBelow>320?rect.bottom+6:rect.top-320-6;
-    let left=rect.left;
-    if(left+280>window.innerWidth-8)left=window.innerWidth-288;
-    wrap.style.cssText=`top:${top}px;left:${left}px`;
+  if (!isSmall()) {
+    const rect = anchorEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow > 380 ? rect.bottom + 6 : Math.max(10, rect.top - 380);
+    const left = Math.min(rect.left, window.innerWidth - 325);
+    wrap.style.cssText = `top:${top}px;left:${Math.max(10, left)}px;position:fixed;`;
   }
 
-  // Canvas (SV picker)
-  const canvasWrap=h('div',{class:'cp-canvas-wrap'});
-  const canvas=h('canvas');canvas.width=256;canvas.height=160;
-  const thumb=h('div',{class:'cp-thumb'});
-  canvasWrap.append(canvas,thumb);
+  const canvasWrap = h("div", { class: "cp-canvas-wrap" });
+  const canvas = h("canvas"); canvas.width = 280; canvas.height = 140;
+  const thumb = h("div", { class: "cp-thumb" });
+  canvasWrap.append(canvas, thumb);
 
-  // Sliders
-  const hueTrack=h('div',{class:'cp-hue-track'});
-  const hueThumb=h('div',{class:'cp-slider-thumb'});
+  const hueTrack = h("div", { class: "cp-hue-track" });
+  const hueThumb = h("div", { class: "cp-hue-thumb" });
   hueTrack.append(hueThumb);
 
-  // Preview + inputs
-  const preview=h('div',{class:'cp-preview'});
-  const hexInp=h('input',{class:'cp-hex-inp',type:'text',maxlength:'7',spellcheck:'false',value:hex.toUpperCase()});
-  const rInp=h('input',{type:'number',min:'0',max:'255',value:r});
-  const gInp=h('input',{type:'number',min:'0',max:'255',value:g});
-  const bInp=h('input',{type:'number',min:'0',max:'255',value:b});
+  const preview = h("div", { class: "cp-preview", style: "background:" + hex });
+  const hexInp = h("input", { class: "cp-hex-inp", type: "text", maxlength: "7", value: hex.toUpperCase() });
 
-  // Swatches
-  const swatchEls=SWATCHES.map(sw=>{
-    const s=h('button',{class:'cp-swatch'+(sw.toLowerCase()===hex.toLowerCase()?' active':''),
-      style:'background:'+sw,title:sw,onclick:()=>applySwatch(sw)});
-    return s;
-  });
-  const swatchGrid=h('div',{class:'cp-swatches'},...swatchEls);
+  const swatchGrid = h("div", { class: "cp-swatches" },
+    ...SWATCHES.map(sw => h("button", {
+      class: "cp-swatch" + (sw.toLowerCase() === hex.toLowerCase() ? " active" : ""),
+      style: "background:" + sw,
+      title: sw,
+      onclick: () => applySwatch(sw)
+    }))
+  );
 
-  // Assemble
+  const doneBtn = h("button", { class: "cp-done-btn", onclick: () => destroy() }, "Gata");
+
   wrap.append(
     canvasWrap,
-    h('div',{class:'cp-sliders'},
-      h('div',{class:'cp-slider-row'},h('span',{class:'cp-slider-label'},'H'),hueTrack)),
-    h('div',{class:'cp-bottom'},
-      preview,
-      h('div',{class:'cp-inputs'},
-        h('div',{class:'cp-hex-row'},h('span',{class:'cp-hex-label'},'HEX'),hexInp),
-        h('div',{class:'cp-rgb-row'},rInp,gInp,bInp))),
-    h('div',{class:'cp-swatches-title'},'Culori rapide'),
-    swatchGrid
+    hueTrack,
+    h("div", { class: "cp-bottom" }, preview, hexInp),
+    h("div", { class: "cp-swatches-title" }, "Culori recomandate"),
+    swatchGrid,
+    doneBtn
   );
   overlay.append(wrap);
   document.body.append(overlay);
 
-  // ---- Drawing ----
-  function drawCanvas(){
-    const ctx=canvas.getContext('2d');
-    const W=canvas.width,H=canvas.height;
-    // Hue base color
-    const[hr,hg,hb]=hsvToRgb(hh,1,1);
-    const base=`rgb(${hr},${hg},${hb})`;
-    // White -> hue
-    const gradH=ctx.createLinearGradient(0,0,W,0);
-    gradH.addColorStop(0,'#fff');
-    gradH.addColorStop(1,base);
-    ctx.fillStyle=gradH;
-    ctx.fillRect(0,0,W,H);
-    // Transparent -> black
-    const gradV=ctx.createLinearGradient(0,0,0,H);
-    gradV.addColorStop(0,'transparent');
-    gradV.addColorStop(1,'#000');
-    ctx.fillStyle=gradV;
-    ctx.fillRect(0,0,W,H);
+  function drawCanvas() {
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const [hr, hg, hb] = hsvToRgb(hh, 1, 1);
+    const gradH = ctx.createLinearGradient(0, 0, W, 0);
+    gradH.addColorStop(0, "#fff");
+    gradH.addColorStop(1, `rgb(${hr},${hg},${hb})`);
+    ctx.fillStyle = gradH;
+    ctx.fillRect(0, 0, W, H);
+    const gradV = ctx.createLinearGradient(0, 0, 0, H);
+    gradV.addColorStop(0, "transparent");
+    gradV.addColorStop(1, "#000");
+    ctx.fillStyle = gradV;
+    ctx.fillRect(0, 0, W, H);
   }
-  function updateThumbPos(){
-    const W=canvasWrap.offsetWidth||256,H=canvasWrap.offsetHeight||160;
-    thumb.style.left=(ss*W)+'px';
-    thumb.style.top=((1-vv)*H)+'px';
-    thumb.style.background=hex;
+
+  function updateThumbPos() {
+    const W = canvasWrap.offsetWidth || 280, H = canvasWrap.offsetHeight || 140;
+    thumb.style.left = (ss * W) + "px";
+    thumb.style.top = ((1 - vv) * H) + "px";
+    thumb.style.background = hex;
   }
-  function updateHuePos(){
-    hueThumb.style.left=((hh/360)*(hueTrack.offsetWidth||256))+'px';
-    hueThumb.style.background=`hsl(${hh},100%,50%)`;
+
+  function updateHuePos() {
+    const W = hueTrack.offsetWidth || 280;
+    hueThumb.style.left = ((hh / 360) * W) + "px";
+    hueThumb.style.background = `hsl(${hh}, 100%, 50%)`;
   }
-  function updatePreview(){
-    preview.style.setProperty('--cp-color',hex);
-    hexInp.value=hex.toUpperCase();
-    rInp.value=r;gInp.value=g;bInp.value=b;
+
+  function updatePreview() {
+    preview.style.background = hex;
+    hexInp.value = hex.toUpperCase();
     onPick(hex);
-    // update active swatch
-    swatchEls.forEach((s,i)=>s.classList.toggle('active',SWATCHES[i].toLowerCase()===hex.toLowerCase()));
+    wrap.querySelectorAll(".cp-swatch").forEach((s, idx) => {
+      s.classList.toggle("active", SWATCHES[idx].toLowerCase() === hex.toLowerCase());
+    });
   }
-  function recompute(){
-    [r,g,b]=hsvToRgb(hh,ss,vv);
-    hex=rgbToHex(r,g,b);
+
+  function recompute() {
+    [r, g, b] = hsvToRgb(hh, ss, vv);
+    hex = rgbToHex(r, g, b);
     drawCanvas();
     updateThumbPos();
     updateHuePos();
     updatePreview();
   }
 
-  // ---- Canvas drag ----
-  function canvasPointer(e){
+  function canvasPointer(e) {
     e.preventDefault();
-    const rect2=canvasWrap.getBoundingClientRect();
-    const px=(e.clientX??e.touches[0].clientX)-rect2.left;
-    const py=(e.clientY??e.touches[0].clientY)-rect2.top;
-    ss=clamp(px/rect2.width,0,1);
-    vv=clamp(1-py/rect2.height,0,1);
+    const rect = canvasWrap.getBoundingClientRect();
+    const cx = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    const cy = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+    ss = clamp((cx - rect.left) / rect.width, 0, 1);
+    vv = clamp(1 - (cy - rect.top) / rect.height, 0, 1);
     recompute();
   }
-  let draggingCanvas=false;
-  canvasWrap.addEventListener('pointerdown',e=>{draggingCanvas=true;canvasWrap.setPointerCapture(e.pointerId);canvasPointer(e);});
-  canvasWrap.addEventListener('pointermove',e=>{if(draggingCanvas)canvasPointer(e);});
-  canvasWrap.addEventListener('pointerup',()=>draggingCanvas=false);
+  let dragC = false;
+  canvasWrap.addEventListener("pointerdown", e => { dragC = true; canvasWrap.setPointerCapture(e.pointerId); canvasPointer(e); });
+  canvasWrap.addEventListener("pointermove", e => { if (dragC) canvasPointer(e); });
+  canvasWrap.addEventListener("pointerup", () => dragC = false);
 
-  // ---- Hue drag ----
-  function huePointer(e){
+  function huePointer(e) {
     e.preventDefault();
-    const rect2=hueTrack.getBoundingClientRect();
-    const px=(e.clientX??e.touches[0].clientX)-rect2.left;
-    hh=clamp((px/rect2.width)*360,0,360);
+    const rect = hueTrack.getBoundingClientRect();
+    const cx = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    hh = clamp(((cx - rect.left) / rect.width) * 360, 0, 360);
     recompute();
   }
-  let draggingHue=false;
-  hueTrack.addEventListener('pointerdown',e=>{draggingHue=true;hueTrack.setPointerCapture(e.pointerId);huePointer(e);});
-  hueTrack.addEventListener('pointermove',e=>{if(draggingHue)huePointer(e);});
-  hueTrack.addEventListener('pointerup',()=>draggingHue=false);
+  let dragH = false;
+  hueTrack.addEventListener("pointerdown", e => { dragH = true; hueTrack.setPointerCapture(e.pointerId); huePointer(e); });
+  hueTrack.addEventListener("pointermove", e => { if (dragH) huePointer(e); });
+  hueTrack.addEventListener("pointerup", () => dragH = false);
 
-  // ---- Hex input ----
-  hexInp.addEventListener('input',e=>{
-    let v=e.target.value.trim().replace(/[^0-9a-fA-F#]/g,'');
-    if(!v.startsWith('#'))v='#'+v;
-    if(/^#[0-9a-fA-F]{6}$/.test(v)){
-      [r,g,b]=hexToRgb(v);[hh,ss,vv]=rgbToHsv(r,g,b);hex=v;
-      drawCanvas();updateThumbPos();updateHuePos();updatePreview();
+  hexInp.addEventListener("input", e => {
+    let v = e.target.value.trim().replace(/[^0-9a-fA-F#]/g, "");
+    if (!v.startsWith("#")) v = "#" + v;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      [r, g, b] = hexToRgb(v);
+      [hh, ss, vv] = rgbToHsv(r, g, b);
+      hex = v;
+      drawCanvas(); updateThumbPos(); updateHuePos(); updatePreview();
     }
   });
-  hexInp.addEventListener('blur',()=>{hexInp.value=hex.toUpperCase();});
-  hexInp.addEventListener('keydown',e=>{if(e.key==='Enter')hexInp.blur();});
 
-  // ---- RGB inputs ----
-  function fromRgbInputs(){
-    r=clamp(parseInt(rInp.value)||0,0,255);
-    g=clamp(parseInt(gInp.value)||0,0,255);
-    b=clamp(parseInt(bInp.value)||0,0,255);
-    [hh,ss,vv]=rgbToHsv(r,g,b);hex=rgbToHex(r,g,b);
-    drawCanvas();updateThumbPos();updateHuePos();updatePreview();
-  }
-  [rInp,gInp,bInp].forEach(inp=>{inp.addEventListener('input',fromRgbInputs);inp.addEventListener('change',fromRgbInputs);});
-
-  // ---- Swatches ----
-  function applySwatch(sw){
-    hex=sw;[r,g,b]=hexToRgb(sw);[hh,ss,vv]=rgbToHsv(r,g,b);
-    drawCanvas();updateThumbPos();updateHuePos();updatePreview();
+  function applySwatch(sw) {
+    hex = sw;
+    [r, g, b] = hexToRgb(sw);
+    [hh, ss, vv] = rgbToHsv(r, g, b);
+    drawCanvas(); updateThumbPos(); updateHuePos(); updatePreview();
   }
 
-  // ---- Init ----
-  function init(){
+  requestAnimationFrame(() => {
     drawCanvas();
     updateThumbPos();
     updateHuePos();
     updatePreview();
-  }
-  // Wait one frame for layout
-  requestAnimationFrame(()=>requestAnimationFrame(init));
+  });
 
-  function destroy(){
+  function destroy() {
     overlay.remove();
-    if(activePicker===ctrl)activePicker=null;
+    if (activePicker === ctrl) activePicker = null;
   }
-  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){destroy();document.removeEventListener('keydown',esc);}});
-
-  const ctrl={destroy};
-  activePicker=ctrl;
+  const ctrl = { destroy };
+  activePicker = ctrl;
   return ctrl;
 }
 
-/* =====================================================================
-   GITHUB SYNC
-   ===================================================================== */
-const REPO='corneluu/orar2026';
-const FILE='data.json';
-const GH_API='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
-const TOK_KEY='orar:gh_token';
-let ghToken=localStorage.getItem(TOK_KEY)||'';
-let fileSha='';
-let saveTimer=null,saving=false,dirty=false;
+/* ==========================================================================
+   PERSISTENCE & GITHUB SYNC (Zero Data Loss)
+   ========================================================================== */
+const REPO = "corneluu/orar2026";
+const FILE = "data.json";
+const GH_API = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+const TOK_KEY = "orar:gh_token";
+let ghToken = localStorage.getItem(TOK_KEY) || "";
+let fileSha = "";
+let saveTimer = null, saving = false, dirty = false;
 
-function setStatus(kind,msg){
-  const el=$('#status');
-  el.className=kind==='error'?'err':kind==='ok'?'ok':'';
-  const map={saved:'✓ Sincronizat',saving:'Se sincronizează…',local:'Salvat local (fără sync)',
-    error:'Eroare sync — salvat local',loading:'Se încarcă…','':''};
-  el.textContent=msg||(map[kind]||'');
+function setStatus(kind, msg) {
+  const pill = $("#status-pill");
+  const text = $("#status-text");
+  pill.className = "status-pill " + (kind === "saved" ? "ok" : kind === "saving" ? "saving" : kind === "error" ? "err" : "");
+  const map = {
+    saved: "Sincronizat",
+    saving: "Se salvează…",
+    local: "Salvat local",
+    error: "Offline",
+    loading: "Se încarcă…"
+  };
+  text.textContent = msg || (map[kind] || "");
 }
-function persistLocal(){try{localStorage.setItem('orar:data',JSON.stringify(S));}catch(e){}}
-function ghHeaders(){return{'Authorization':'token '+ghToken,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
 
-async function loadFromGitHub(){
-  if(!ghToken){setStatus('local');return;}
-  setStatus('loading');
-  try{
-    const res=await fetch(GH_API+'?t='+Date.now(),{headers:ghHeaders(),cache:'no-store'});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    fileSha=json.sha;
-    const raw=atob(json.content.replace(/\n/g,''));
-    if(raw&&raw!=='{}'){
-      const remote=normalize(JSON.parse(raw));
-      if(JSON.stringify(remote)!==JSON.stringify(S)){S=remote;persistLocal();render();}
+function ghHeaders() {
+  return {
+    "Authorization": "token " + ghToken,
+    "Content-Type": "application/json",
+    "Accept": "application/vnd.github.v3+json"
+  };
+}
+
+async function loadFromGitHub() {
+  if (!ghToken) { setStatus("local"); return; }
+  setStatus("loading");
+  try {
+    const res = await fetch(GH_API + "?t=" + Date.now(), { headers: ghHeaders(), cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    fileSha = json.sha;
+    const raw = b64ToUtf8(json.content);
+    if (raw && raw !== "{}") {
+      const remote = normalize(JSON.parse(raw));
+      if (JSON.stringify(remote) !== JSON.stringify(S)) {
+        S = remote;
+        persistLocal();
+        render();
+      }
     }
-    setStatus('saved');
-  }catch(err){setStatus('error','Sync offline — date locale');}
-}
-async function saveToGitHub(retry){
-  if(!ghToken||!dirty)return;
-  if(saving){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveToGitHub(),300);return;}
-  saving=true;dirty=false;
-  const content=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
-  const body={message:'sync: update calendar data',content,sha:fileSha||undefined};
-  try{
-    const res=await fetch(GH_API,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
-    if(!res.ok){const e=await res.json().catch(()=>({message:'HTTP '+res.status}));throw new Error(e.message);}
-    const json=await res.json();
-    fileSha=json.content.sha;
-    saving=false;setStatus(dirty?'saving':'saved');
-  }catch(err){
-    saving=false;
-    if(!retry){dirty=true;setTimeout(()=>saveToGitHub(true),2500);return;}
-    setStatus('error');
+    setStatus("saved");
+  } catch (err) {
+    setStatus("error", "Sync offline");
   }
-  if(dirty){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveToGitHub(),300);}
-}
-function changed(){
-  persistLocal();render();
-  if(!ghToken){setStatus('local');return;}
-  dirty=true;setStatus('saving');
-  clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveToGitHub(),700);
 }
 
-/* =====================================================================
-   DATA
-   ===================================================================== */
-const DEFAULT_CATS=[
-  {id:'sala',name:'Sală',color:'#16A34A'},
-  {id:'pizzerie',name:'Pizzerie',color:'#EA580C'},
-  {id:'tata',name:'Muncă (tata)',color:'#CA8A04'},
-  {id:'facultate',name:'Facultate / școală',color:'#2563EB'},
-  {id:'personal',name:'Personal',color:'#9333EA'},
-  {id:'altele',name:'Altele',color:'#64748B'}
+async function saveToGitHub(retry) {
+  if (!ghToken || !dirty) return;
+  if (saving) {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveToGitHub(), 300);
+    return;
+  }
+  saving = true;
+  dirty = false;
+  const content = utf8ToB64(JSON.stringify(S));
+  const body = { message: "sync: update calendar data", content, sha: fileSha || undefined };
+  try {
+    const res = await fetch(GH_API, { method: "PUT", headers: ghHeaders(), body: JSON.stringify(body) });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({ message: "HTTP " + res.status }));
+      throw new Error(e.message);
+    }
+    const json = await res.json();
+    fileSha = json.content.sha;
+    saving = false;
+    setStatus(dirty ? "saving" : "saved");
+  } catch (err) {
+    saving = false;
+    if (!retry) {
+      dirty = true;
+      setTimeout(() => saveToGitHub(true), 2000);
+      return;
+    }
+    setStatus("error", "Eroare salvare");
+  }
+  if (dirty) {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveToGitHub(), 300);
+  }
+}
+
+function persistLocal() {
+  try { localStorage.setItem("orar:data", JSON.stringify(S)); } catch (e) {}
+}
+
+function changed() {
+  persistLocal();
+  render();
+  if (!ghToken) { setStatus("local"); return; }
+  dirty = true;
+  setStatus("saving");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToGitHub(), 600);
+}
+
+/* ==========================================================================
+   INITIAL DATA & DEFAULTS
+   ========================================================================== */
+const DEFAULT_CATS = [
+  { id: "sala", name: "Sală", color: "#16A34A" },
+  { id: "pizzerie", name: "Pizzerie", color: "#EA580C" },
+  { id: "tata", name: "Muncă (tata)", color: "#CA8A04" },
+  { id: "facultate", name: "Facultate / Școală", color: "#2563EB" },
+  { id: "personal", name: "Personal", color: "#9333EA" },
+  { id: "altele", name: "Altele", color: "#64748B" }
 ];
-function seed(id,title,cat,start,end){return{id,title,cat,start,end,note:'',rec:{days:[0],every:1,from:'2026-09-28',until:null}};}
-function defaults(){return{v:1,cats:DEFAULT_CATS.map(c=>({...c})),events:[
-  seed('seed1','Sală','sala','10:00','11:00'),seed('seed2','Pizzerie','pizzerie','11:00','15:00'),
-  seed('seed3','Sală','sala','15:00','16:00'),seed('seed4','Muncă la tata','tata','16:00','18:00')
-],ov:{},done:{}};}
-function normalize(o){
-  const d=(o&&typeof o==='object')?o:{};
-  return{v:1,cats:Array.isArray(d.cats)&&d.cats.length?d.cats:DEFAULT_CATS.map(c=>({...c})),
-    events:Array.isArray(d.events)?d.events:[],
-    ov:d.ov&&typeof d.ov==='object'?d.ov:{},done:d.done&&typeof d.done==='object'?d.done:{}};
-}
-let S;
-try{const raw=localStorage.getItem('orar:data');S=raw?normalize(JSON.parse(raw)):defaults();}catch(e){S=defaults();}
-let ui={view:'month',cursor:iso(new Date()),hh:56,hidden:[]};
-try{const raw=localStorage.getItem('orar:ui');if(raw){ui={...ui,...JSON.parse(raw)};ui.cursor=iso(new Date());}}catch(e){}
-function saveUi(){try{localStorage.setItem('orar:ui',JSON.stringify({view:ui.view,hh:ui.hh,hidden:ui.hidden}));}catch(e){}}
-const catOf=id=>S.cats.find(c=>c.id===id)||S.cats[S.cats.length-1];
 
-/* =====================================================================
-   OCCURRENCES
-   ===================================================================== */
-function mk(e,date){
-  const key=e.id+'@'+date;const o=S.ov[key];
-  if(o&&o.cancel)return null;
-  const m=o?{...e,...o}:e;
-  return{id:e.id,key,date,title:m.title,cat:m.cat,start:m.start,end:m.end,note:m.note||'',
-    rec:!!e.rec,done:!!S.done[key],changed:!!o,s:toMin(m.start),e:toMin(m.end)};
+function seed(id, title, cat, start, end) {
+  return { id, title, cat, start, end, note: "", rec: { days: [0], every: 1, from: "2026-09-28", until: null } };
 }
-function occurrencesOn(date){
-  const res=[];const dn=dow(date);
-  for(const e of S.events){
-    let occ=null;
-    if(!e.rec){if(e.date===date)occ=mk(e,date);}
-    else{
-      const r=e.rec;
-      if(!r.days.includes(dn)||date<r.from||(r.until&&date>r.until))continue;
-      if((weekOf(date)-weekOf(r.from))%(r.every||1)!==0)continue;
-      occ=mk(e,date);
-    }
-    if(occ&&!ui.hidden.includes(occ.cat))res.push(occ);
+
+function defaults() {
+  return {
+    v: 1,
+    cats: DEFAULT_CATS.map(c => ({ ...c })),
+    events: [
+      seed("seed1", "Sală", "sala", "10:00", "11:00"),
+      seed("seed2", "Pizzerie", "pizzerie", "11:00", "15:00"),
+      seed("seed3", "Sală", "sala", "15:00", "16:00"),
+      seed("seed4", "Muncă la tata", "tata", "16:00", "18:00")
+    ],
+    ov: {},
+    done: {}
+  };
+}
+
+function normalize(o) {
+  const d = (o && typeof o === "object") ? o : {};
+  const cats = Array.isArray(d.cats) && d.cats.length ? d.cats : DEFAULT_CATS.map(c => ({ ...c }));
+  // Clean Romanian diacritics in all loaded categories
+  cats.forEach(c => { c.name = cleanRomanianText(c.name); });
+  const events = Array.isArray(d.events) ? d.events : [];
+  events.forEach(e => {
+    e.title = cleanRomanianText(e.title);
+    if (e.note) e.note = cleanRomanianText(e.note);
+  });
+  return {
+    v: 1,
+    cats,
+    events,
+    ov: d.ov && typeof d.ov === "object" ? d.ov : {},
+    done: d.done && typeof d.done === "object" ? d.done : {}
+  };
+}
+
+let S;
+try {
+  const raw = localStorage.getItem("orar:data");
+  S = raw ? normalize(JSON.parse(raw)) : defaults();
+} catch (e) {
+  S = defaults();
+}
+
+let ui = { view: "month", cursor: iso(new Date()), hh: 56, hidden: [] };
+try {
+  const raw = localStorage.getItem("orar:ui");
+  if (raw) {
+    ui = { ...ui, ...JSON.parse(raw) };
+    ui.cursor = iso(new Date());
   }
-  res.sort((a,b)=>a.s-b.s||a.e-b.e);
+} catch (e) {}
+
+function saveUi() {
+  try { localStorage.setItem("orar:ui", JSON.stringify({ view: ui.view, hh: ui.hh, hidden: ui.hidden })); } catch (e) {}
+}
+
+const catOf = id => S.cats.find(c => c.id === id) || S.cats[S.cats.length - 1];
+
+/* ==========================================================================
+   EVENT OCCURRENCES COMPUTATION
+   ========================================================================== */
+function mk(e, date) {
+  const key = e.id + "@" + date;
+  const o = S.ov[key];
+  if (o && o.cancel) return null;
+  const m = o ? { ...e, ...o } : e;
+  return {
+    id: e.id,
+    key,
+    date,
+    title: m.title,
+    cat: m.cat,
+    start: m.start,
+    end: m.end,
+    note: m.note || "",
+    rec: !!e.rec,
+    done: !!S.done[key],
+    changed: !!o,
+    s: toMin(m.start),
+    e: toMin(m.end)
+  };
+}
+
+function occurrencesOn(date) {
+  const res = [];
+  const dn = dow(date);
+  for (const e of S.events) {
+    let occ = null;
+    if (!e.rec) {
+      if (e.date === date) occ = mk(e, date);
+    } else {
+      const r = e.rec;
+      if (!r.days.includes(dn) || date < r.from || (r.until && date > r.until)) continue;
+      if ((weekOf(date) - weekOf(r.from)) % (r.every || 1) !== 0) continue;
+      occ = mk(e, date);
+    }
+    if (occ && !ui.hidden.includes(occ.cat)) res.push(occ);
+  }
+  res.sort((a, b) => a.s - b.s || a.e - b.e);
   return res;
 }
 
-/* =====================================================================
-   RENDER HEADER / LEGEND / TOTALS
-   ===================================================================== */
-function titleText(){
-  const c=ui.cursor,d=parse(c);
-  if(ui.view==='month')return cap(MONTHS[d.getMonth()])+' '+d.getFullYear();
-  if(ui.view==='week'){const a=parse(mondayOf(c)),b=parse(addD(mondayOf(c),6));return a.getDate()+' '+MS[a.getMonth()]+' – '+b.getDate()+' '+MS[b.getMonth()]+' '+b.getFullYear();}
-  return DAYS[dow(c)]+', '+d.getDate()+' '+MONTHS[d.getMonth()];
-}
-function nav(dir){
-  const d=parse(ui.cursor);
-  if(ui.view==='month'){d.setDate(1);d.setMonth(d.getMonth()+dir);ui.cursor=iso(d);}
-  else ui.cursor=addD(ui.cursor,dir*(ui.view==='week'?7:1));
-  render();
-}
-function renderHead(){
-  $('#title').textContent=titleText();document.title='Orarul meu — '+titleText();
-  for(const b of $('#views').children)b.setAttribute('aria-pressed',String(b.dataset.v===ui.view));
-  $('#zoom').style.display=ui.view==='month'?'none':'';
-}
-function renderLegend(){
-  const box=$('#legend');box.replaceChildren();
-  for(const c of S.cats){
-    box.append(h('button',{class:'lg',style:'--c:'+c.color,'aria-pressed':String(!ui.hidden.includes(c.id)),
-      title:'Arată / ascunde',onclick:()=>{ui.hidden=ui.hidden.includes(c.id)?ui.hidden.filter(x=>x!==c.id):[...ui.hidden,c.id];saveUi();render();}},h('i'),c.name));
+/* ==========================================================================
+   HEADER / CONTROLS RENDERING
+   ========================================================================== */
+function titleText() {
+  const c = ui.cursor, d = parse(c);
+  if (ui.view === "month") return cap(MONTHS[d.getMonth()]) + " " + d.getFullYear();
+  if (ui.view === "week") {
+    const a = parse(mondayOf(c)), b = parse(addD(mondayOf(c), 6));
+    return a.getDate() + " " + MS[a.getMonth()] + " – " + b.getDate() + " " + MS[b.getMonth()] + " " + b.getFullYear();
   }
-}
-function renderTotals(dates){
-  const el=$('#totals');el.replaceChildren();
-  if(ui.view==='month'){el.style.display='none';return;}
-  const sum={};let all=0;
-  for(const d of dates)for(const o of occurrencesOn(d)){sum[o.cat]=(sum[o.cat]||0)+(o.e-o.s);all+=o.e-o.s;}
-  const parts=S.cats.filter(c=>sum[c.id]).map(c=>[c.name+' ',h('b',null,fmtDur(sum[c.id]))]);
-  el.style.display='';
-  if(!parts.length){el.textContent=ui.view==='week'?'Nimic planificat în săptămâna asta.':'Nimic planificat azi.';return;}
-  el.append(ui.view==='week'?'În săptămâna asta: ':'Azi: ');
-  parts.forEach((p,i)=>{if(i)el.append(' · ');el.append(...p);});
+  return DAYS[dow(c)] + ", " + d.getDate() + " " + MONTHS[d.getMonth()];
 }
 
-/* =====================================================================
+function nav(dir) {
+  const d = parse(ui.cursor);
+  if (ui.view === "month") {
+    d.setDate(1);
+    d.setMonth(d.getMonth() + dir);
+    ui.cursor = iso(d);
+  } else {
+    ui.cursor = addD(ui.cursor, dir * (ui.view === "week" ? 7 : 1));
+  }
+  render();
+}
+
+function renderHead() {
+  $("#title").textContent = titleText();
+  document.title = "Orarul meu — " + titleText();
+  for (const b of $("#views").children) {
+    b.setAttribute("aria-pressed", String(b.dataset.v === ui.view));
+  }
+  $("#zoom").style.display = ui.view === "month" ? "none" : "";
+}
+
+function renderLegend() {
+  const box = $("#legend");
+  box.replaceChildren();
+  for (const c of S.cats) {
+    box.append(h("button", {
+      class: "lg",
+      style: "--c:" + c.color,
+      "aria-pressed": String(!ui.hidden.includes(c.id)),
+      title: "Arată / ascunde",
+      onclick: () => {
+        ui.hidden = ui.hidden.includes(c.id) ? ui.hidden.filter(x => x !== c.id) : [...ui.hidden, c.id];
+        saveUi();
+        render();
+      }
+    }, h("i"), c.name));
+  }
+}
+
+function renderTotals(dates) {
+  const el = $("#totals");
+  el.replaceChildren();
+  if (ui.view === "month") {
+    el.style.display = "none";
+    return;
+  }
+  const sum = {};
+  let all = 0;
+  for (const d of dates) {
+    for (const o of occurrencesOn(d)) {
+      sum[o.cat] = (sum[o.cat] || 0) + (o.e - o.s);
+      all += o.e - o.s;
+    }
+  }
+  const parts = S.cats.filter(c => sum[c.id]).map(c => [c.name + " ", h("b", null, fmtDur(sum[c.id]))]);
+  el.style.display = "";
+  if (!parts.length) {
+    el.textContent = ui.view === "week" ? "Nimic planificat în săptămâna asta." : "Nimic planificat azi.";
+    return;
+  }
+  el.append(ui.view === "week" ? "În săptămâna asta: " : "Azi: ");
+  parts.forEach((p, i) => {
+    if (i) el.append(" · ");
+    el.append(...p);
+  });
+}
+
+/* ==========================================================================
    MONTH VIEW
-   ===================================================================== */
-function monthView(){
-  const first=parse(ui.cursor);first.setDate(1);const firstIso=iso(first);
-  const nDays=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
-  const rows=Math.ceil((dow(firstIso)+nDays)/7);
-  const start=mondayOf(firstIso),today=iso(new Date());const maxChips=isSmall()?3:4;
-  const wrap=h('div',{class:'month'});
-  wrap.append(h('div',{class:'mh'},h('div'),...DAYS3.map(d=>h('div',null,d))));
-  for(let r=0;r<rows;r++){
-    const ws=addD(start,r*7);const row=h('div',{class:'mr'});
-    row.append(h('button',{class:'wk',title:'Vezi săptămâna',onclick:()=>{ui.cursor=ws;ui.view='week';saveUi();render();}},'S'+isoWeek(ws)));
-    for(let i=0;i<7;i++){
-      const d=addD(ws,i);const inMonth=parse(d).getMonth()===first.getMonth();const evs=occurrencesOn(d);
-      const cell=h('div',{class:'cell'+(inMonth?'':' other')+(d===today?' today':''),
-        onclick:e=>{if(e.target.closest('.chip,.more'))return;ui.cursor=d;ui.view='day';saveUi();render();},
-        ondblclick:e=>{if(e.target.closest('.chip,.more'))return;openEditor({date:d});}
-      },h('span',{class:'dn'},parse(d).getDate()));
-      evs.slice(0,maxChips).forEach(o=>{cell.append(h('button',{class:'chip'+(o.done?' done':''),style:'--c:'+catOf(o.cat).color,title:o.start+'–'+o.end+' '+o.title,onclick:()=>openEditor({occ:o})},h('span',{class:'t'},o.start),o.title));});
-      if(evs.length>maxChips)cell.append(h('button',{class:'more',onclick:()=>{ui.cursor=d;ui.view='day';saveUi();render();}},'+'+( evs.length-maxChips)+' încă'));
+   ========================================================================== */
+function monthView() {
+  const first = parse(ui.cursor);
+  first.setDate(1);
+  const firstIso = iso(first);
+  const nDays = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  const rows = Math.ceil((dow(firstIso) + nDays) / 7);
+  const start = mondayOf(firstIso), today = iso(new Date());
+  const maxChips = isSmall() ? 2 : 4;
+  const wrap = h("div", { class: "month" });
+
+  wrap.append(h("div", { class: "mh" }, h("div"), ...DAYS3.map(d => h("div", null, d))));
+
+  for (let r = 0; r < rows; r++) {
+    const ws = addD(start, r * 7);
+    const row = h("div", { class: "mr" });
+    row.append(h("button", {
+      class: "wk",
+      title: "Vezi săptămâna",
+      onclick: () => { ui.cursor = ws; ui.view = "week"; saveUi(); render(); }
+    }, "S" + isoWeek(ws)));
+
+    for (let i = 0; i < 7; i++) {
+      const d = addD(ws, i);
+      const inMonth = parse(d).getMonth() === first.getMonth();
+      const evs = occurrencesOn(d);
+      const cell = h("div", {
+        class: "cell" + (inMonth ? "" : " other") + (d === today ? " today" : ""),
+        onclick: e => {
+          if (e.target.closest(".chip, .more-pill")) return;
+          ui.cursor = d;
+          ui.view = isSmall() ? "day" : "day";
+          saveUi();
+          render();
+        },
+        ondblclick: e => {
+          if (e.target.closest(".chip, .more-pill")) return;
+          openEditor({ date: d });
+        }
+      }, h("span", { class: "dn" }, parse(d).getDate()));
+
+      evs.slice(0, maxChips).forEach(o => {
+        cell.append(h("button", {
+          class: "chip" + (o.done ? " done" : ""),
+          style: "--c:" + catOf(o.cat).color,
+          title: o.start + "–" + o.end + " " + o.title,
+          onclick: () => openEditor({ occ: o })
+        }, h("span", { class: "t" }, o.start), o.title));
+      });
+
+      if (evs.length > maxChips) {
+        cell.append(h("button", {
+          class: "more-pill",
+          onclick: () => { ui.cursor = d; ui.view = "day"; saveUi(); render(); }
+        }, "+" + (evs.length - maxChips) + " încă"));
+      }
+
       row.append(cell);
     }
     wrap.append(row);
@@ -713,290 +1857,731 @@ function monthView(){
   return wrap;
 }
 
-/* =====================================================================
-   GRID VIEW
-   ===================================================================== */
-function layout(evs){
-  const out=[];let cluster=[],end=-1;
-  const flushCl=()=>{
-    const cols=[];
-    for(const ev of cluster){let placed=false;for(let i=0;i<cols.length;i++){if(cols[i]<=ev.s){cols[i]=ev.e;ev.col=i;placed=true;break;}}if(!placed){ev.col=cols.length;cols.push(ev.e);}}
-    for(const ev of cluster)ev.n=cols.length;out.push(...cluster);cluster=[];
+/* ==========================================================================
+   GRID VIEW (WEEK / DAY)
+   ========================================================================== */
+function layout(evs) {
+  const out = [];
+  let cluster = [], end = -1;
+  const flushCl = () => {
+    const cols = [];
+    for (const ev of cluster) {
+      let placed = false;
+      for (let i = 0; i < cols.length; i++) {
+        if (cols[i] <= ev.s) { cols[i] = ev.e; ev.col = i; placed = true; break; }
+      }
+      if (!placed) { ev.col = cols.length; cols.push(ev.e); }
+    }
+    for (const ev of cluster) ev.n = cols.length;
+    out.push(...cluster);
+    cluster = [];
   };
-  for(const ev of evs){if(cluster.length&&ev.s>=end){flushCl();end=-1;}cluster.push(ev);end=Math.max(end,ev.e);}
-  if(cluster.length)flushCl();return out;
+  for (const ev of evs) {
+    if (cluster.length && ev.s >= end) { flushCl(); end = -1; }
+    cluster.push(ev);
+    end = Math.max(end, ev.e);
+  }
+  if (cluster.length) flushCl();
+  return out;
 }
-function gridView(dates){
-  const per=dates.map(d=>occurrencesOn(d));let minH=6;
-  per.forEach(l=>l.forEach(o=>{minH=Math.min(minH,Math.floor(o.s/60));}));
-  const maxH=24,hh=ui.hh,H=(maxH-minH)*hh,today=iso(new Date());const n=dates.length;
-  const gw=h('div',{class:'gw'});
-  const g=h('div',{class:'g',style:'--hh:'+hh+'px;grid-template-columns:50px repeat('+n+',minmax('+(n===1?'160':'96')+'px,1fr));min-width:'+(50+n*(n===1?160:96))+'px'});
-  g.append(h('div',{class:'corner'}));
-  dates.forEach(d=>{const dt=parse(d);g.append(h('div',{class:'dh'+(d===today?' today':''),title:'Deschide ziua',onclick:()=>{if(n>1){ui.cursor=d;ui.view='day';saveUi();render();}}},h('small',null,DAYS3[dow(d)]),h('span',null,dt.getDate())));});
-  const tc=h('div',{class:'tc',style:'height:'+H+'px'});
-  for(let x=minH+1;x<maxH;x++)tc.append(h('div',{style:'top:'+((x-minH)*hh)+'px'},pad(x)+':00'));
+
+function gridView(dates) {
+  const per = dates.map(d => occurrencesOn(d));
+  let minH = 6;
+  per.forEach(l => l.forEach(o => { minH = Math.min(minH, Math.floor(o.s / 60)); }));
+  const maxH = 24, hh = ui.hh, H = (maxH - minH) * hh, today = iso(new Date());
+  const n = dates.length;
+  const gw = h("div", { class: "gw" });
+  const colMin = n === 1 ? (isSmall() ? 200 : 220) : (isSmall() ? 78 : 96);
+  const g = h("div", {
+    class: "g",
+    style: `--hh:${hh}px;grid-template-columns:46px repeat(${n},minmax(${colMin}px,1fr));min-width:${46 + n * colMin}px`
+  });
+
+  g.append(h("div", { class: "corner" }));
+  dates.forEach(d => {
+    const dt = parse(d);
+    g.append(h("div", {
+      class: "dh" + (d === today ? " today" : ""),
+      title: "Deschide ziua",
+      onclick: () => { if (n > 1) { ui.cursor = d; ui.view = "day"; saveUi(); render(); } }
+    }, h("small", null, DAYS3[dow(d)]), h("span", null, dt.getDate())));
+  });
+
+  const tc = h("div", { class: "tc", style: "height:" + H + "px" });
+  for (let x = minH + 1; x < maxH; x++) {
+    tc.append(h("div", { style: "top:" + ((x - minH) * hh) + "px" }, pad(x) + ":00"));
+  }
   g.append(tc);
-  dates.forEach((d,i)=>{
-    const dc=h('div',{class:'dc'+(d===today?' today':''),style:'height:'+H+'px',onclick:e=>{
-      if(e.target!==dc)return;const mins=minH*60+Math.floor(e.offsetY/hh*2)*30;
-      const s=Math.min(mins,23*60),en=Math.min(s+60,24*60);
-      const f=m=>pad(Math.floor(m/60)%24)+':'+pad(m%60);
-      openEditor({date:d,start:f(s),end:en===1440?'23:59':f(en)});
-    }});
-    layout(per[i]).forEach(o=>{
-      const top=(o.s/60-minH)*hh,height=Math.max((o.e-o.s)/60*hh,20);const w=100/o.n;
-      const ev=h('div',{class:'ev'+(o.done?' done':''),role:'button',tabindex:'0',
-        style:'--c:'+catOf(o.cat).color+';top:'+top+'px;height:'+height+'px;left:calc('+(o.col*w)+'% + 1px);width:calc('+w+'% - 3px)',
-        onclick:e=>{if(e.target.closest('.ck'))return;openEditor({occ:o});},
-        onkeydown:e=>{if(e.key==='Enter')openEditor({occ:o});}},
-        h('button',{class:'ck','aria-label':'Bifează ca făcut',title:'Bifează ca făcut',onclick:e=>{e.stopPropagation();if(S.done[o.key])delete S.done[o.key];else S.done[o.key]=1;changed();}},o.done?'✓':''),
-        h('b',null,o.title),height>34?h('span',{class:'tm'},o.start+' – '+o.end):null);
+
+  dates.forEach((d, i) => {
+    const dc = h("div", {
+      class: "dc" + (d === today ? " today" : ""),
+      style: "height:" + H + "px",
+      onclick: e => {
+        if (e.target !== dc) return;
+        const mins = minH * 60 + Math.floor(e.offsetY / hh * 2) * 30;
+        const s = Math.min(mins, 23 * 60), en = Math.min(s + 60, 24 * 60);
+        const f = m => pad(Math.floor(m / 60) % 24) + ":" + pad(m % 60);
+        openEditor({ date: d, start: f(s), end: en === 1440 ? "23:59" : f(en) });
+      }
+    });
+
+    layout(per[i]).forEach(o => {
+      const top = (o.s / 60 - minH) * hh, height = Math.max((o.e - o.s) / 60 * hh, 22);
+      const w = 100 / o.n;
+      const ev = h("div", {
+        class: "ev" + (o.done ? " done" : ""),
+        role: "button",
+        tabindex: "0",
+        style: `--c:${catOf(o.cat).color};top:${top}px;height:${height}px;left:calc(${o.col * w}% + 1px);width:calc(${w}% - 3px)`,
+        onclick: e => { if (e.target.closest(".ck")) return; openEditor({ occ: o }); },
+        onkeydown: e => { if (e.key === "Enter") openEditor({ occ: o }); }
+      },
+      h("button", {
+        class: "ck",
+        "aria-label": "Bifează ca făcut",
+        title: "Bifează ca făcut",
+        onclick: e => {
+          e.stopPropagation();
+          if (S.done[o.key]) delete S.done[o.key];
+          else S.done[o.key] = 1;
+          changed();
+        }
+      }, o.done ? "✓" : ""),
+      h("b", null, o.title),
+      height > 34 ? h("span", { class: "tm" }, o.start + " – " + o.end) : null);
+
       dc.append(ev);
     });
-    if(d===today){const now=new Date(),nm=now.getHours()*60+now.getMinutes();if(nm/60>=minH)dc.append(h('div',{class:'nowline',style:'top:'+((nm/60-minH)*hh)+'px'}));}
+
+    if (d === today) {
+      const now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
+      if (nm / 60 >= minH) {
+        dc.append(h("div", { class: "nowline", style: "top:" + ((nm / 60 - minH) * hh) + "px" }));
+      }
+    }
     g.append(dc);
   });
-  gw.append(g);return gw;
+
+  gw.append(g);
+  return gw;
 }
 
-/* =====================================================================
-   RENDER
-   ===================================================================== */
-let lastView=null;
-function render(){
-  renderHead();renderLegend();
-  const main=$('#main');
-  const old=$('.gw',main);const st=old?old.scrollTop:null,sl=old?old.scrollLeft:null;
-  main.replaceChildren();let dates=[];
-  if(ui.view==='month'){main.append(monthView());}
-  else{
-    dates=ui.view==='week'?Array.from({length:7},(_,i)=>addD(mondayOf(ui.cursor),i)):[ui.cursor];
-    const gv=gridView(dates);main.append(gv);
-    if(st!==null&&lastView===ui.view){gv.scrollTop=st;gv.scrollLeft=sl||0;}
-    else{gv.scrollTop=Math.max(0,(7-Math.min(6,6))*ui.hh-4);}
+/* ==========================================================================
+   RENDER DISPATCHER
+   ========================================================================== */
+let lastView = null;
+function render() {
+  renderHead();
+  renderLegend();
+  const main = $("#main");
+  const old = $(".gw", main);
+  const st = old ? old.scrollTop : null, sl = old ? old.scrollLeft : null;
+  main.replaceChildren();
+
+  let dates = [];
+  if (ui.view === "month") {
+    main.append(monthView());
+  } else {
+    dates = ui.view === "week" ? Array.from({ length: 7 }, (_, i) => addD(mondayOf(ui.cursor), i)) : [ui.cursor];
+    const gv = gridView(dates);
+    main.append(gv);
+    if (st !== null && lastView === ui.view) {
+      gv.scrollTop = st;
+      gv.scrollLeft = sl || 0;
+    } else {
+      gv.scrollTop = Math.max(0, (7 - Math.min(6, 6)) * ui.hh - 4);
+    }
   }
-  lastView=ui.view;renderTotals(dates);
+  lastView = ui.view;
+  renderTotals(dates);
 }
 
-/* =====================================================================
-   MODAL
-   ===================================================================== */
-let closeCurrent=null;
-function openModal(build){
-  if(closeCurrent)closeCurrent();
-  if(activePicker){activePicker.destroy();activePicker=null;}
-  const ov=h('div',{class:'ov',onmousedown:e=>{if(e.target===ov)close();}});
-  const box=h('div',{class:'sheet',role:'dialog','aria-modal':'true'});
-  ov.append(box);document.body.append(ov);
-  const onKey=e=>{if(e.key==='Escape')close();};
-  document.addEventListener('keydown',onKey);
-  function close(){document.removeEventListener('keydown',onKey);ov.remove();closeCurrent=null;if(activePicker){activePicker.destroy();activePicker=null;}}
-  closeCurrent=close;build(box,close);return close;
+/* ==========================================================================
+   MODAL CONTAINER / BOTTOM SHEET
+   ========================================================================== */
+let closeCurrent = null;
+function openModal(build) {
+  if (closeCurrent) closeCurrent();
+  if (activePicker) { activePicker.destroy(); activePicker = null; }
+
+  const ov = h("div", { class: "ov", onmousedown: e => { if (e.target === ov) close(); } });
+  const box = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" });
+  ov.append(box);
+  document.body.append(ov);
+
+  const onKey = e => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+
+  function close() {
+    document.removeEventListener("keydown", onKey);
+    ov.remove();
+    closeCurrent = null;
+    if (activePicker) { activePicker.destroy(); activePicker = null; }
+  }
+  closeCurrent = close;
+  build(box, close);
+  return close;
 }
 
-/* =====================================================================
+/* ==========================================================================
    EVENT EDITOR
-   ===================================================================== */
-function purgeSeries(id,fromDate){for(const map of[S.ov,S.done])for(const k of Object.keys(map)){if(k.startsWith(id+'@')&&k.slice(id.length+1)>=fromDate)delete map[k];}}
-function splitSeries(base,d){
-  const ne=JSON.parse(JSON.stringify(base));ne.id=uid();ne.rec.from=d;base.rec.until=addD(d,-1);
-  for(const map of[S.ov,S.done])for(const k of Object.keys(map)){if(k.startsWith(base.id+'@')&&k.slice(base.id.length+1)>=d){map[ne.id+k.slice(base.id.length)]=map[k];delete map[k];}}
-  S.events.push(ne);return ne;
+   ========================================================================== */
+function purgeSeries(id, fromDate) {
+  for (const map of [S.ov, S.done]) {
+    for (const k of Object.keys(map)) {
+      if (k.startsWith(id + "@") && k.slice(id.length + 1) >= fromDate) delete map[k];
+    }
+  }
 }
-function openEditor(o){
-  const occ=o.occ||null;const base=occ?S.events.find(e=>e.id===occ.id):null;
-  const isNew=!occ,isRec=!!(base&&base.rec);
-  const firstCat=(S.cats.find(c=>!ui.hidden.includes(c.id))||S.cats[0]).id;
-  const date=occ?occ.date:(o.date||ui.cursor);
-  const f={title:occ?occ.title:'',cat:occ?occ.cat:firstCat,start:occ?occ.start:(o.start||'09:00'),end:occ?occ.end:(o.end||'10:00'),
-    note:occ?occ.note:'',date,done:occ?occ.done:false,repeat:isRec,days:isRec?[...base.rec.days]:[dow(date)],
-    every:isRec?(base.rec.every||1):1,from:isRec?base.rec.from:date,until:isRec?(base.rec.until||''):'',err:'',deleting:false};
-  let scope=isRec?'this':'all';
-  openModal((box,close)=>{
-    function draw(){
-      const dt=parse(date);const head=isNew?'Eveniment nou':'Modifică evenimentul';const kids=[h('h2',null,head)];
-      if(isRec)kids.push(h('p',{class:'sub'},DAYS[dow(date)]+', '+dt.getDate()+' '+MONTHS[dt.getMonth()]+' — eveniment care se repetă'));
-      if(isRec){kids.push(h('div',{class:'fld'},h('span',{class:'lab'},'Se aplică'),h('div',{class:'seg',style:'display:flex;width:100%'},...[['this','Doar ziua asta'],['following','De aici încolo'],['all','Toată seria']].map(([v,l])=>h('button',{style:'flex:1','aria-pressed':String(scope===v),onclick:()=>{scope=v;f.err='';draw();}},l)))));}
-      kids.push(h('div',{class:'fld'},h('label',{for:'f-title'},'Titlu'),h('input',{id:'f-title',class:'inp',type:'text',placeholder:'Ce ai de făcut?',value:f.title,oninput:e=>{f.title=e.target.value;}})));
-      kids.push(h('div',{class:'fld'},h('span',{class:'lab'},'Categorie'),h('div',{class:'chips'},...S.cats.map(c=>h('button',{class:'pick',style:'--c:'+c.color,'aria-pressed':String(f.cat===c.id),onclick:()=>{f.cat=c.id;draw();}},h('i'),c.name)))));
-      if(!isRec)kids.push(h('div',{class:'fld'},h('label',{for:'f-date'},'Data'),h('input',{id:'f-date',class:'inp',type:'date',value:f.date,oninput:e=>{if(e.target.value)f.date=e.target.value;}})));
-      kids.push(h('div',{class:'fld row'},h('div',null,h('label',{class:'lab',for:'f-start'},'De la'),h('input',{id:'f-start',class:'inp',type:'time',step:'300',value:f.start,oninput:e=>{f.start=e.target.value;}})),h('div',null,h('label',{class:'lab',for:'f-end'},'Până la'),h('input',{id:'f-end',class:'inp',type:'time',step:'300',value:f.end,oninput:e=>{f.end=e.target.value;}}))));
-      if(isNew)kids.push(h('div',{class:'fld'},h('label',{class:'chk-row'},h('input',{type:'checkbox',checked:f.repeat,onchange:e=>{f.repeat=e.target.checked;if(f.repeat){f.days=[dow(f.date)];f.from=f.date;}draw();}}), 'Se repetă săptămânal')));
-      if((isNew&&f.repeat)||(isRec&&scope!=='this')){
-        kids.push(h('div',{class:'fld'},h('span',{class:'lab'},'În zilele'),h('div',{class:'chips'},...DAYS1.map((l,i)=>h('button',{class:'dpick',title:DAYS[i],'aria-pressed':String(f.days.includes(i)),onclick:()=>{f.days=f.days.includes(i)?f.days.filter(x=>x!==i):[...f.days,i].sort();draw();}},DAYS3[i])))));
-        const sel=h('select',{class:'inp',id:'f-every',onchange:e=>{f.every=Number(e.target.value);}},...[1,2,3,4].map(n=>h('option',{value:n},n===1?'În fiecare săptămână':'La fiecare '+n+' săptămâni')));
-        sel.value=String(f.every);
-        kids.push(h('div',{class:'fld'},h('label',{class:'lab',for:'f-every'},'Frecvență'),sel));
-        const fromLocked=isRec&&scope==='following';
-        kids.push(h('div',{class:'fld row'},h('div',null,h('label',{class:'lab',for:'f-from'},'Începând cu'),h('input',{id:'f-from',class:'inp',type:'date',value:fromLocked?date:f.from,disabled:fromLocked?true:null,oninput:e=>{if(e.target.value)f.from=e.target.value;}})),h('div',null,h('label',{class:'lab',for:'f-until'},'Până la (opțional)'),h('input',{id:'f-until',class:'inp',type:'date',value:f.until,oninput:e=>{f.until=e.target.value;}}))));
+
+function splitSeries(base, d) {
+  const ne = JSON.parse(JSON.stringify(base));
+  ne.id = uid();
+  ne.rec.from = d;
+  base.rec.until = addD(d, -1);
+  for (const map of [S.ov, S.done]) {
+    for (const k of Object.keys(map)) {
+      if (k.startsWith(base.id + "@") && k.slice(base.id.length + 1) >= d) {
+        map[ne.id + k.slice(base.id.length)] = map[k];
+        delete map[k];
       }
-      kids.push(h('div',{class:'fld'},h('label',{class:'lab',for:'f-note'},'Notițe'),h('textarea',{id:'f-note',class:'inp',placeholder:'Detalii, ce trebuie să iei cu tine…',value:f.note,oninput:e=>{f.note=e.target.value;}})));
-      if(!isNew)kids.push(h('div',{class:'fld'},h('label',{class:'chk-row'},h('input',{type:'checkbox',checked:f.done,onchange:e=>{f.done=e.target.checked;}}),'Făcut (doar pentru '+dt.getDate()+' '+MS[dt.getMonth()]+')')));
-      if(f.err)kids.push(h('p',{class:'ferr',role:'alert'},'⚠ ',f.err));
-      if(f.deleting){
-        kids.push(h('div',{class:'foot'},h('span',{class:'lab',style:'margin:0;flex-basis:100%'},isRec?'Ce ștergi?':'Sigur ștergi evenimentul?'),
-          ...(isRec?[h('button',{class:'btn danger',onclick:()=>del('this')},'Doar ziua asta'),h('button',{class:'btn danger',onclick:()=>del('following')},'De aici încolo'),h('button',{class:'btn danger',onclick:()=>del('all')},'Toată seria')]:[h('button',{class:'btn danger',onclick:()=>del('all')},'Da, șterge')]),
-          h('button',{class:'btn',onclick:()=>{f.deleting=false;draw();}},'Nu')));
-      }else{
-        kids.push(h('div',{class:'foot'},!isNew?h('button',{class:'btn danger',onclick:()=>{f.deleting=true;draw();}},'Șterge'):null,h('span',{class:'spacer'}),h('button',{class:'btn',onclick:close},'Anulează'),h('button',{class:'btn primary',onclick:save},'Salvează')));
+    }
+  }
+  S.events.push(ne);
+  return ne;
+}
+
+function openEditor(o) {
+  const occ = o.occ || null;
+  const base = occ ? S.events.find(e => e.id === occ.id) : null;
+  const isNew = !occ, isRec = !!(base && base.rec);
+  const firstCat = (S.cats.find(c => !ui.hidden.includes(c.id)) || S.cats[0]).id;
+  const date = occ ? occ.date : (o.date || ui.cursor);
+
+  const f = {
+    title: occ ? occ.title : "",
+    cat: occ ? occ.cat : firstCat,
+    start: occ ? occ.start : (o.start || "09:00"),
+    end: occ ? occ.end : (o.end || "10:00"),
+    note: occ ? occ.note : "",
+    date,
+    done: occ ? occ.done : false,
+    repeat: isRec,
+    days: isRec ? [...base.rec.days] : [dow(date)],
+    every: isRec ? (base.rec.every || 1) : 1,
+    from: isRec ? base.rec.from : date,
+    until: isRec ? (base.rec.until || "") : "",
+    err: "",
+    deleting: false
+  };
+
+  let scope = isRec ? "this" : "all";
+
+  openModal((box, close) => {
+    function draw() {
+      const dt = parse(date);
+      const head = isNew ? "Eveniment nou" : "Modifică evenimentul";
+
+      const headEl = h("div", { class: "sheet-head" },
+        h("h2", null, head),
+        isRec ? h("p", { class: "sub" }, DAYS[dow(date)] + ", " + dt.getDate() + " " + MONTHS[dt.getMonth()] + " — se repetă") : null
+      );
+
+      const bodyKids = [];
+
+      if (isRec) {
+        bodyKids.push(h("div", { class: "fld" },
+          h("span", { class: "lab" }, "Se aplică"),
+          h("div", { class: "view-segment", style: "display:flex;width:100%" },
+            ...[["this", "Doar ziua asta"], ["following", "De aici încolo"], ["all", "Toată seria"]].map(([v, l]) =>
+              h("button", {
+                style: "flex:1",
+                "aria-pressed": String(scope === v),
+                onclick: () => { scope = v; f.err = ""; draw(); }
+              }, l)
+            )
+          )
+        ));
       }
-      box.replaceChildren(...kids);
+
+      bodyKids.push(h("div", { class: "fld" },
+        h("label", { for: "f-title" }, "Titlu"),
+        h("input", {
+          id: "f-title",
+          class: "inp",
+          type: "text",
+          placeholder: "Ce ai de făcut?",
+          value: f.title,
+          oninput: e => { f.title = e.target.value; }
+        })
+      ));
+
+      bodyKids.push(h("div", { class: "fld" },
+        h("span", { class: "lab" }, "Categorie"),
+        h("div", { class: "legend-scroll", style: "padding:0 0 4px;" },
+          ...S.cats.map(c => h("button", {
+            class: "lg",
+            style: "--c:" + c.color,
+            "aria-pressed": String(f.cat === c.id),
+            onclick: () => { f.cat = c.id; draw(); }
+          }, h("i"), c.name))
+        )
+      ));
+
+      if (!isRec) {
+        bodyKids.push(h("div", { class: "fld" },
+          h("label", { for: "f-date" }, "Data"),
+          h("input", {
+            id: "f-date",
+            class: "inp",
+            type: "date",
+            value: f.date,
+            oninput: e => { if (e.target.value) f.date = e.target.value; }
+          })
+        ));
+      }
+
+      bodyKids.push(h("div", { class: "fld row" },
+        h("div", null,
+          h("label", { class: "lab", for: "f-start" }, "De la"),
+          h("input", {
+            id: "f-start",
+            class: "inp",
+            type: "time",
+            step: "300",
+            value: f.start,
+            oninput: e => { f.start = e.target.value; }
+          })
+        ),
+        h("div", null,
+          h("label", { class: "lab", for: "f-end" }, "Până la"),
+          h("input", {
+            id: "f-end",
+            class: "inp",
+            type: "time",
+            step: "300",
+            value: f.end,
+            oninput: e => { f.end = e.target.value; }
+          })
+        )
+      ));
+
+      if (isNew) {
+        bodyKids.push(h("div", { class: "fld" },
+          h("label", { class: "chk-row" },
+            h("input", {
+              type: "checkbox",
+              checked: f.repeat,
+              onchange: e => {
+                f.repeat = e.target.checked;
+                if (f.repeat) { f.days = [dow(f.date)]; f.from = f.date; }
+                draw();
+              }
+            }),
+            "Se repetă săptămânal"
+          )
+        ));
+      }
+
+      if ((isNew && f.repeat) || (isRec && scope !== "this")) {
+        bodyKids.push(h("div", { class: "fld" },
+          h("span", { class: "lab" }, "În zilele"),
+          h("div", { class: "dpick-row" },
+            ...DAYS1.map((l, i) => h("button", {
+              class: "dpick",
+              title: DAYS[i],
+              "aria-pressed": String(f.days.includes(i)),
+              onclick: () => {
+                f.days = f.days.includes(i) ? f.days.filter(x => x !== i) : [...f.days, i].sort();
+                draw();
+              }
+            }, DAYS3[i]))
+          )
+        ));
+
+        const sel = h("select", {
+          class: "inp",
+          id: "f-every",
+          onchange: e => { f.every = Number(e.target.value); }
+        }, ...[1, 2, 3, 4].map(n => h("option", { value: n }, n === 1 ? "În fiecare săptămână" : `La fiecare ${n} săptămâni`)));
+        sel.value = String(f.every);
+        bodyKids.push(h("div", { class: "fld" }, h("label", { class: "lab", for: "f-every" }, "Frecvență"), sel));
+
+        const fromLocked = isRec && scope === "following";
+        bodyKids.push(h("div", { class: "fld row" },
+          h("div", null,
+            h("label", { class: "lab", for: "f-from" }, "Începând cu"),
+            h("input", {
+              id: "f-from",
+              class: "inp",
+              type: "date",
+              value: fromLocked ? date : f.from,
+              disabled: fromLocked ? true : null,
+              oninput: e => { if (e.target.value) f.from = e.target.value; }
+            })
+          ),
+          h("div", null,
+            h("label", { class: "lab", for: "f-until" }, "Până la (opțional)"),
+            h("input", {
+              id: "f-until",
+              class: "inp",
+              type: "date",
+              value: f.until,
+              oninput: e => { f.until = e.target.value; }
+            })
+          )
+        ));
+      }
+
+      bodyKids.push(h("div", { class: "fld" },
+        h("label", { class: "lab", for: "f-note" }, "Notițe"),
+        h("textarea", {
+          id: "f-note",
+          class: "inp",
+          placeholder: "Detalii, ce trebuie să iei cu tine…",
+          value: f.note,
+          oninput: e => { f.note = e.target.value; }
+        })
+      ));
+
+      if (!isNew) {
+        bodyKids.push(h("div", { class: "fld" },
+          h("label", { class: "chk-row" },
+            h("input", {
+              type: "checkbox",
+              checked: f.done,
+              onchange: e => { f.done = e.target.checked; }
+            }),
+            `Făcut (pentru ${dt.getDate()} ${MS[dt.getMonth()]})`
+          )
+        ));
+      }
+
+      if (f.err) {
+        bodyKids.push(h("p", { class: "err-msg", role: "alert" }, "⚠ " + f.err));
+      }
+
+      const bodyEl = h("div", { class: "sheet-body" }, ...bodyKids);
+
+      let footEl;
+      if (f.deleting) {
+        footEl = h("div", { class: "sheet-foot", style: "flex-wrap:wrap" },
+          h("span", { class: "lab", style: "width:100%;margin:0;" }, isRec ? "Ce dorești să ștergi?" : "Sigur ștergi evenimentul?"),
+          ...(isRec ? [
+            h("button", { class: "btn danger", onclick: () => del("this") }, "Doar ziua asta"),
+            h("button", { class: "btn danger", onclick: () => del("following") }, "De aici încolo"),
+            h("button", { class: "btn danger", onclick: () => del("all") }, "Toată seria")
+          ] : [
+            h("button", { class: "btn danger", onclick: () => del("all") }, "Da, șterge")
+          ]),
+          h("button", { class: "btn", onclick: () => { f.deleting = false; draw(); } }, "Nu")
+        );
+      } else {
+        footEl = h("div", { class: "sheet-foot" },
+          !isNew ? h("button", { class: "btn danger", onclick: () => { f.deleting = true; draw(); } }, "Șterge") : null,
+          h("span", { style: "flex:1" }),
+          h("button", { class: "btn", onclick: close }, "Anulează"),
+          h("button", { class: "btn primary", onclick: save }, "Salvează")
+        );
+      }
+
+      box.replaceChildren(headEl, bodyEl, footEl);
     }
-    function del(sc){
-      if(!isRec){S.events=S.events.filter(e=>e.id!==base.id);purgeSeries(base.id,'0000-00-00');}
-      else if(sc==='this'){S.ov[occ.key]={cancel:true};delete S.done[occ.key];}
-      else if(sc==='following'&&date>base.rec.from){base.rec.until=addD(date,-1);purgeSeries(base.id,date);}
-      else{S.events=S.events.filter(e=>e.id!==base.id);purgeSeries(base.id,'0000-00-00');}
-      close();changed();
+
+    function del(sc) {
+      if (!isRec) {
+        S.events = S.events.filter(e => e.id !== base.id);
+        purgeSeries(base.id, "0000-00-00");
+      } else if (sc === "this") {
+        S.ov[occ.key] = { cancel: true };
+        delete S.done[occ.key];
+      } else if (sc === "following" && date > base.rec.from) {
+        base.rec.until = addD(date, -1);
+        purgeSeries(base.id, date);
+      } else {
+        S.events = S.events.filter(e => e.id !== base.id);
+        purgeSeries(base.id, "0000-00-00");
+      }
+      close();
+      changed();
     }
-    function save(){
-      const title=f.title.trim()||catOf(f.cat).name;
-      if(!f.start||!f.end||toMin(f.end)<=toMin(f.start)){f.err='Ora de final trebuie să fie după ora de început.';draw();return;}
-      const wantsRec=(isNew&&f.repeat)||(isRec&&scope!=='this');
-      if(wantsRec&&!f.days.length){f.err='Alege cel puțin o zi din săptămână.';draw();return;}
-      if(wantsRec&&f.until&&f.until<(isRec&&scope==='following'?date:f.from)){f.err='Data de final e înaintea datei de început.';draw();return;}
-      const fields={title,cat:f.cat,start:f.start,end:f.end,note:f.note.trim()};
-      const recDef={days:[...f.days],every:f.every,from:f.from,until:f.until||null};
-      let key=null;
-      if(isNew){const ev={id:uid(),...fields};if(f.repeat){ev.rec=recDef;}else{ev.rec=null;ev.date=f.date;}S.events.push(ev);}
-      else if(!isRec){Object.assign(base,fields,{date:f.date});if(f.date!==date){const ok=base.id+'@'+date,nk=base.id+'@'+f.date;if(S.done[ok]){S.done[nk]=S.done[ok];delete S.done[ok];}}key=base.id+'@'+f.date;}
-      else if(scope==='this'){const diff={};for(const k of Object.keys(fields))if((fields[k]||'')!==(base[k]||''))diff[k]=fields[k];if(Object.keys(diff).length)S.ov[occ.key]=diff;else delete S.ov[occ.key];key=occ.key;}
-      else if(scope==='all'){Object.assign(base,fields);base.rec=recDef;key=occ.key;}
-      else{if(date<=base.rec.from){Object.assign(base,fields);base.rec=recDef;key=occ.key;}else{const ne=splitSeries(base,date);Object.assign(ne,fields);ne.rec={...recDef,from:date};key=ne.id+'@'+date;}}
-      if(key){if(f.done)S.done[key]=1;else delete S.done[key];}
-      close();changed();
+
+    function save() {
+      const title = f.title.trim() || catOf(f.cat).name;
+      if (!f.start || !f.end || toMin(f.end) <= toMin(f.start)) {
+        f.err = "Ora de final trebuie să fie după ora de început.";
+        draw();
+        return;
+      }
+      const wantsRec = (isNew && f.repeat) || (isRec && scope !== "this");
+      if (wantsRec && !f.days.length) {
+        f.err = "Alege cel puțin o zi din săptămână.";
+        draw();
+        return;
+      }
+      if (wantsRec && f.until && f.until < (isRec && scope === "following" ? date : f.from)) {
+        f.err = "Data de final e înaintea datei de început.";
+        draw();
+        return;
+      }
+
+      const fields = { title, cat: f.cat, start: f.start, end: f.end, note: f.note.trim() };
+      const recDef = { days: [...f.days], every: f.every, from: f.from, until: f.until || null };
+      let key = null;
+
+      if (isNew) {
+        const ev = { id: uid(), ...fields };
+        if (f.repeat) ev.rec = recDef;
+        else { ev.rec = null; ev.date = f.date; }
+        S.events.push(ev);
+      } else if (!isRec) {
+        Object.assign(base, fields, { date: f.date });
+        if (f.date !== date) {
+          const ok = base.id + "@" + date, nk = base.id + "@" + f.date;
+          if (S.done[ok]) { S.done[nk] = S.done[ok]; delete S.done[ok]; }
+        }
+        key = base.id + "@" + f.date;
+      } else if (scope === "this") {
+        const diff = {};
+        for (const k of Object.keys(fields)) {
+          if ((fields[k] || "") !== (base[k] || "")) diff[k] = fields[k];
+        }
+        if (Object.keys(diff).length) S.ov[occ.key] = diff;
+        else delete S.ov[occ.key];
+        key = occ.key;
+      } else if (scope === "all") {
+        Object.assign(base, fields);
+        base.rec = recDef;
+        key = occ.key;
+      } else {
+        if (date <= base.rec.from) {
+          Object.assign(base, fields);
+          base.rec = recDef;
+          key = occ.key;
+        } else {
+          const ne = splitSeries(base, date);
+          Object.assign(ne, fields);
+          ne.rec = { ...recDef, from: date };
+          key = ne.id + "@" + date;
+        }
+      }
+
+      if (key) {
+        if (f.done) S.done[key] = 1;
+        else delete S.done[key];
+      }
+      close();
+      changed();
     }
-    draw();const t=$('#f-title',box);if(t&&isNew&&!isSmall())t.focus();
+
+    draw();
+    const t = $("#f-title", box);
+    if (t && isNew && !isSmall()) t.focus();
   });
 }
 
-/* =====================================================================
-   CATEGORIES EDITOR  (with color picker)
-   ===================================================================== */
-function openCats(){
-  const work=S.cats.map(c=>({...c}));
-  let removed=[];
-  openModal((box,close)=>{
-    function draw(){
-      const kids=[
-        h('h2',null,'🎨 Categorii'),
-        h('p',{class:'sub'},'Redenumește, schimbă culoarea sau adaugă categorii noi. Click pe pătrat pentru a alege culoarea.')
-      ];
+/* ==========================================================================
+   CATEGORIES MANAGER (PRO COLOR PICKER INTEGRATED)
+   ========================================================================== */
+function openCats() {
+  const work = S.cats.map(c => ({ ...c }));
+  let removed = [];
 
-      const list=h('div',{class:'cat-list'});
-      work.forEach((c,i)=>{
-        // Color button
-        const colorBtn=h('button',{class:'color-btn',title:'Alege culoarea',style:'background:'+c.color},
-          h('span',{class:'cb-dot',style:`background:${isLight(c.color)?'rgba(0,0,0,.35)':'rgba(255,255,255,.7)'}`},'✎'));
+  openModal((box, close) => {
+    function draw() {
+      const headEl = h("div", { class: "sheet-head" },
+        h("h2", null, "🎨 Categorii"),
+        h("p", { class: "sub" }, "Personalizează categoriile și culorile. Atinge pătratul de culoare pentru a o modifica.")
+      );
 
-        colorBtn.style.background=c.color;
-        colorBtn.onclick=()=>{
-          openColorPicker(colorBtn, c.color, (newHex)=>{
-            c.color=newHex;
-            colorBtn.style.background=newHex;
-            const dot=colorBtn.querySelector('.cb-dot');
-            if(dot)dot.style.color=isLight(newHex)?'rgba(0,0,0,.5)':'rgba(255,255,255,.8)';
-          });
-        };
+      const list = h("div", { class: "cat-list" });
+      work.forEach((c, i) => {
+        const colorBtn = h("button", {
+          class: "color-btn",
+          style: "background:" + c.color,
+          title: "Schimbă culoarea",
+          onclick: () => {
+            openColorPicker(colorBtn, c.color, newHex => {
+              c.color = newHex;
+              colorBtn.style.background = newHex;
+            });
+          }
+        }, h("span", { style: `color:${isLight(c.color) ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.9)"}` }, "✎"));
 
-        const nameInp=h('input',{class:'cat-name-inp',type:'text',value:c.name,
-          placeholder:'Nume categorie',maxlength:'40',
-          oninput:e=>{c.name=e.target.value;}});
+        const nameInp = h("input", {
+          class: "cat-name-inp",
+          type: "text",
+          value: c.name,
+          placeholder: "Nume categorie",
+          maxlength: "40",
+          oninput: e => { c.name = e.target.value; }
+        });
 
-        const delBtn=h('button',{class:'del-cat-btn',title:'Șterge categoria',disabled:work.length<=1,
-          onclick:()=>{removed.push(work[i].id);work.splice(i,1);if(activePicker){activePicker.destroy();activePicker=null;}draw();}},
-          '✕');
+        const delBtn = h("button", {
+          class: "del-cat-btn",
+          title: "Șterge",
+          disabled: work.length <= 1,
+          onclick: () => {
+            removed.push(work[i].id);
+            work.splice(i, 1);
+            if (activePicker) { activePicker.destroy(); activePicker = null; }
+            draw();
+          }
+        }, "✕");
 
-        list.append(h('div',{class:'catrow'},colorBtn,nameInp,delBtn));
+        list.append(h("div", { class: "catrow" }, colorBtn, nameInp, delBtn));
       });
 
-      kids.push(list);
-      kids.push(h('button',{class:'add-cat-btn',onclick:()=>{
-        work.push({id:'c'+uid(),name:'Categorie nouă',color:randomColor()});
-        draw();
-        // Focus last name input
-        setTimeout(()=>{const inputs=box.querySelectorAll('.cat-name-inp');if(inputs.length)inputs[inputs.length-1].select();},50);
-      }},'＋  Adaugă categorie'));
-
-      kids.push(h('p',{class:'hint'},'Dacă ștergi o categorie, evenimentele ei trec automat la prima categorie din listă.'));
-      kids.push(h('div',{class:'foot'},
-        h('span',{class:'spacer'}),
-        h('button',{class:'btn',onclick:()=>{if(activePicker){activePicker.destroy();activePicker=null;}close();}},'Anulează'),
-        h('button',{class:'btn primary',onclick:()=>{
-          work.forEach(c=>{c.name=c.name.trim()||'Fără nume';});
-          const fallback=work[0].id;
-          S.events.forEach(e=>{if(removed.includes(e.cat)&&!work.some(c=>c.id===e.cat))e.cat=fallback;});
-          for(const k of Object.keys(S.ov))if(S.ov[k]&&removed.includes(S.ov[k].cat)&&!work.some(c=>c.id===S.ov[k].cat))S.ov[k].cat=fallback;
-          S.cats=work;ui.hidden=ui.hidden.filter(id=>work.some(c=>c.id===id));saveUi();
-          if(activePicker){activePicker.destroy();activePicker=null;}
-          close();changed();
-        }},'Salvează')));
-      box.replaceChildren(...kids);
-    }
-    draw();
-  });
-}
-
-// Returns true if color is light (use dark text on it)
-function isLight(hex){
-  const[r,g,b]=hexToRgb(hex);
-  return(0.299*r+0.587*g+0.114*b)>160;
-}
-function randomColor(){
-  const hue=Math.floor(Math.random()*360);
-  const[r,g,b]=hsvToRgb(hue,0.75,0.85);
-  return rgbToHex(r,g,b);
-}
-
-/* =====================================================================
-   SYNC SETTINGS
-   ===================================================================== */
-function openSettings(){
-  openModal((box,close)=>{
-    let tokVal=ghToken;
-    function draw(){
-      const connected=!!ghToken;
-      box.replaceChildren(
-        h('h2',null,'⚙ Configurare Sync'),
-        h('div',{class:'info-box'},h('b',null,'Cum funcționează: '),'Calendarul este salvat în repo-ul tău GitHub ca fișier JSON. Token-ul GitHub permite scrierea datelor de pe orice dispozitiv. Token-ul este salvat doar în browser (localStorage) și nu apare niciodată în codul public.'),
-        h('div',{class:'fld'},
-          h('label',{for:'gh-tok'},'GitHub Personal Access Token'+(connected?' ✓':'')),
-          h('input',{id:'gh-tok',class:'inp',type:'password',placeholder:connected?'(configurat — lasă gol pentru a păstra)':'ghp_xxxxxxxxxxxxxxxx',value:tokVal,oninput:e=>{tokVal=e.target.value.trim();}}),
-          h('p',{class:'hint'},'Generează la: github.com/settings/tokens → scope: repo')),
-        h('div',{class:'foot'},
-          connected?h('button',{class:'btn danger',onclick:()=>{ghToken='';localStorage.removeItem(TOK_KEY);setStatus('local');close();}},'Deconectează'):null,
-          h('span',{class:'spacer'}),
-          h('button',{class:'btn',onclick:close},'Anulează'),
-          h('button',{class:'btn primary',onclick:async()=>{
-            if(!tokVal&&!ghToken){alert('Introdu token-ul.');return;}
-            if(tokVal)ghToken=tokVal;
-            localStorage.setItem(TOK_KEY,ghToken);
-            close();await loadFromGitHub();
-          }},'Conectează & sincronizează'))
+      const bodyEl = h("div", { class: "sheet-body" },
+        list,
+        h("button", {
+          class: "add-cat-btn",
+          onclick: () => {
+            const hue = Math.floor(Math.random() * 360);
+            const [r, g, b] = hsvToRgb(hue, 0.75, 0.85);
+            work.push({ id: "c" + uid(), name: "Categorie nouă", color: rgbToHex(r, g, b) });
+            draw();
+            setTimeout(() => {
+              const inputs = box.querySelectorAll(".cat-name-inp");
+              if (inputs.length) inputs[inputs.length - 1].select();
+            }, 60);
+          }
+        }, "＋  Adaugă categorie nouă")
       );
+
+      const footEl = h("div", { class: "sheet-foot" },
+        h("span", { style: "flex:1" }),
+        h("button", {
+          class: "btn",
+          onclick: () => {
+            if (activePicker) { activePicker.destroy(); activePicker = null; }
+            close();
+          }
+        }, "Anulează"),
+        h("button", {
+          class: "btn primary",
+          onclick: () => {
+            work.forEach(c => { c.name = c.name.trim() || "Fără nume"; });
+            const fallback = work[0].id;
+            S.events.forEach(e => {
+              if (removed.includes(e.cat) && !work.some(c => c.id === e.cat)) e.cat = fallback;
+            });
+            for (const k of Object.keys(S.ov)) {
+              if (S.ov[k] && removed.includes(S.ov[k].cat) && !work.some(c => c.id === S.ov[k].cat)) S.ov[k].cat = fallback;
+            }
+            S.cats = work;
+            ui.hidden = ui.hidden.filter(id => work.some(c => c.id === id));
+            saveUi();
+            if (activePicker) { activePicker.destroy(); activePicker = null; }
+            close();
+            changed();
+          }
+        }, "Salvează")
+      );
+
+      box.replaceChildren(headEl, bodyEl, footEl);
     }
     draw();
   });
 }
 
-/* =====================================================================
-   WIRING
-   ===================================================================== */
-$('#prev').onclick=()=>nav(-1);
-$('#next').onclick=()=>nav(1);
-$('#today').onclick=()=>{ui.cursor=iso(new Date());render();};
-for(const b of $('#views').children)b.onclick=()=>{ui.view=b.dataset.v;saveUi();render();};
-$('#zin').onclick=()=>{ui.hh=Math.min(140,ui.hh+12);saveUi();render();};
-$('#zout').onclick=()=>{ui.hh=Math.max(28,ui.hh-12);saveUi();render();};
-$('#add').onclick=()=>openEditor({date:ui.view==='month'?iso(new Date()):ui.cursor});
-$('#cats').onclick=openCats;
-$('#settings').onclick=openSettings;
-let rt=null;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,150);});
+/* ==========================================================================
+   SYNC SETTINGS MODAL
+   ========================================================================== */
+function openSettings() {
+  openModal((box, close) => {
+    let tokVal = ghToken;
+    function draw() {
+      const connected = !!ghToken;
+      const headEl = h("div", { class: "sheet-head" },
+        h("h2", null, "⚙ Sincronizare Cloud"),
+        h("p", { class: "sub" }, "Sincronizează automat orarul între PC și telefon prin GitHub.")
+      );
 
+      const bodyEl = h("div", { class: "sheet-body" },
+        h("div", { class: "fld" },
+          h("label", { for: "gh-tok" }, "GitHub Access Token" + (connected ? " ✓ (Conectat)" : "")),
+          h("input", {
+            id: "gh-tok",
+            class: "inp",
+            type: "password",
+            placeholder: connected ? "••••••••••••••••••••••••" : "ghp_xxxxxxxxxxxxxxxx",
+            value: tokVal,
+            oninput: e => { tokVal = e.target.value.trim(); }
+          }),
+          h("p", { class: "sub", style: "margin-top:6px;font-size:12px;" }, "Token-ul rămâne stocat doar în acest dispozitiv (localStorage).")
+        )
+      );
+
+      const footEl = h("div", { class: "sheet-foot" },
+        connected ? h("button", {
+          class: "btn danger",
+          onclick: () => {
+            ghToken = "";
+            localStorage.removeItem(TOK_KEY);
+            setStatus("local");
+            close();
+          }
+        }, "Deconectează") : null,
+        h("span", { style: "flex:1" }),
+        h("button", { class: "btn", onclick: close }, "Anulează"),
+        h("button", {
+          class: "btn primary",
+          onclick: async () => {
+            if (!tokVal && !ghToken) { alert("Introdu token-ul."); return; }
+            if (tokVal) ghToken = tokVal;
+            localStorage.setItem(TOK_KEY, ghToken);
+            close();
+            await loadFromGitHub();
+          }
+        }, "Conectează & sincronizează")
+      );
+
+      box.replaceChildren(headEl, bodyEl, footEl);
+    }
+    draw();
+  });
+}
+
+/* ==========================================================================
+   EVENT LISTENERS & APP INITIALIZATION
+   ========================================================================== */
+$("#prev").onclick = () => nav(-1);
+$("#next").onclick = () => nav(1);
+$("#today").onclick = () => { ui.cursor = iso(new Date()); render(); };
+
+for (const b of $("#views").children) {
+  b.onclick = () => {
+    ui.view = b.dataset.v;
+    saveUi();
+    render();
+  };
+}
+
+$("#zin").onclick = () => { ui.hh = Math.min(140, ui.hh + 12); saveUi(); render(); };
+$("#zout").onclick = () => { ui.hh = Math.max(28, ui.hh - 12); saveUi(); render(); };
+$("#add").onclick = () => openEditor({ date: ui.view === "month" ? iso(new Date()) : ui.cursor });
+$("#cats").onclick = openCats;
+$("#settings").onclick = openSettings;
+
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 150);
+});
+
+// Initial boot
 render();
-if(ghToken)loadFromGitHub();else setStatus('local');
-setInterval(()=>{if(ghToken&&!dirty&&!saving)loadFromGitHub();},60000);
+if (ghToken) loadFromGitHub();
+else setStatus("local");
+
+// Background sync every 60s
+setInterval(() => {
+  if (ghToken && !dirty && !saving) loadFromGitHub();
+}, 60000);
+
 })();
 </script>
 </body>
