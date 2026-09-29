@@ -2685,27 +2685,38 @@ function openEditor(o) {
       bodyKids.push(h("div", { class: "time-card" }, ...timeCardKids));
 
       // 6. Recurrence Card (Se repetă regulat)
+      function toggleRecurrence(newVal) {
+        f.repeat = typeof newVal === "boolean" ? newVal : !f.repeat;
+        if (f.repeat) {
+          if (!f.days || !f.days.length) f.days = [dow(f.date)];
+          if (!f.from) f.from = f.date;
+        }
+        draw();
+      }
+
       const recKids = [
-        h("div", { class: "rec-header-row", onclick: () => {
-          if (isNew) {
-            f.repeat = !f.repeat;
-            if (f.repeat) { f.days = [dow(f.date)]; f.from = f.date; }
-            draw();
+        h("div", {
+          class: "rec-header-row",
+          onclick: (e) => {
+            if (e.target.closest(".switch")) return;
+            toggleRecurrence();
           }
-        } },
+        },
           h("div", { class: "rec-switch-label" },
             h("span", null, "🔁"),
             "Eveniment recurent (Se repetă)"
           ),
-          h("label", { class: "switch" },
+          h("label", {
+            class: "switch",
+            onclick: (e) => {
+              e.stopPropagation();
+            }
+          },
             h("input", {
               type: "checkbox",
-              checked: isRec || (isNew && f.repeat),
-              disabled: isRec ? true : null,
-              onchange: e => {
-                f.repeat = e.target.checked;
-                if (f.repeat) { f.days = [dow(f.date)]; f.from = f.date; }
-                draw();
+              checked: !!f.repeat,
+              onchange: (e) => {
+                toggleRecurrence(e.target.checked);
               }
             }),
             h("span", { class: "slider" })
@@ -2713,7 +2724,7 @@ function openEditor(o) {
         )
       ];
 
-      if (isRec) {
+      if (isRec && f.repeat) {
         recKids.push(h("div", { style: "margin-top:12px;" },
           h("span", { class: "lab" }, "Unde aplici modificarea?"),
           h("div", { class: "scope-cards" },
@@ -2734,7 +2745,7 @@ function openEditor(o) {
         ));
       }
 
-      if ((isNew && f.repeat) || (isRec && scope !== "this")) {
+      if (f.repeat && (!isRec || scope !== "this")) {
         recKids.push(h("div", { style: "margin-top:14px;" },
           h("span", { class: "lab" }, "Zilele săptămânii în care se repetă"),
           h("div", { class: "dpick-row" },
@@ -2821,16 +2832,32 @@ function openEditor(o) {
 
       // 8. Completion Status Card (if modifying)
       if (!isNew) {
-        bodyKids.push(h("div", { class: "status-card" },
+        bodyKids.push(h("div", {
+          class: "status-card",
+          style: "cursor:pointer;",
+          onclick: (e) => {
+            if (e.target.closest(".switch")) return;
+            f.done = !f.done;
+            draw();
+          }
+        },
           h("div", { class: "status-card-label" },
             h("span", { style: f.done ? "color:var(--success)" : "color:var(--ink3)" }, f.done ? "✓" : "○"),
             `Marchează ca finalizat (${dt.getDate()} ${MS[dt.getMonth()]})`
           ),
-          h("label", { class: "switch" },
+          h("label", {
+            class: "switch",
+            onclick: (e) => {
+              e.stopPropagation();
+            }
+          },
             h("input", {
               type: "checkbox",
-              checked: f.done,
-              onchange: e => { f.done = e.target.checked; draw(); }
+              checked: !!f.done,
+              onchange: (e) => {
+                f.done = e.target.checked;
+                draw();
+              }
             }),
             h("span", { class: "slider", style: f.done ? "background-color:var(--success)" : "" })
           )
@@ -2908,8 +2935,8 @@ function openEditor(o) {
         draw();
         return;
       }
-      const wantsRec = (isNew && f.repeat) || (isRec && scope !== "this");
-      if (wantsRec && !f.days.length) {
+      const wantsRec = f.repeat && (!isRec || scope !== "this");
+      if (wantsRec && (!f.days || !f.days.length)) {
         f.err = "Alege cel puțin o zi din săptămână.";
         draw();
         return;
@@ -2937,12 +2964,19 @@ function openEditor(o) {
         else { ev.rec = null; ev.date = f.date; }
         S.events.push(ev);
       } else if (!isRec) {
-        Object.assign(base, fields, { date: f.date });
-        if (f.date !== date) {
-          const ok = base.id + "@" + date, nk = base.id + "@" + f.date;
-          if (S.done[ok]) { S.done[nk] = S.done[ok]; delete S.done[ok]; }
+        if (f.repeat) {
+          base.rec = recDef;
+          delete base.date;
+          Object.assign(base, fields);
+          key = base.id + "@" + f.date;
+        } else {
+          Object.assign(base, fields, { date: f.date });
+          if (f.date !== date) {
+            const ok = base.id + "@" + date, nk = base.id + "@" + f.date;
+            if (S.done[ok]) { S.done[nk] = S.done[ok]; delete S.done[ok]; }
+          }
+          key = base.id + "@" + f.date;
         }
-        key = base.id + "@" + f.date;
       } else if (scope === "this") {
         const diff = {};
         for (const k of Object.keys(fields)) {
