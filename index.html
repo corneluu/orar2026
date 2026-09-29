@@ -132,12 +132,8 @@ textarea.inp{resize:vertical;min-height:64px}
 .catrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .catrow input[type=color]{width:42px;height:38px;padding:2px;border:1px solid var(--line);border-radius:9px;background:var(--surface);flex:none}
 .hint{font-size:13px;color:var(--ink2);margin:8px 0 0}
-
-/* Settings */
-.gas-setup{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px}
-.gas-setup h3{font:600 16px/1.2 var(--font-head);margin:0 0 8px}
-.gas-setup code{background:var(--line2);border-radius:4px;padding:2px 5px;font-size:13px;word-break:break-all}
-.gas-setup ol{margin:8px 0;padding-left:20px;line-height:1.8}
+.info-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13.5px;line-height:1.6}
+.info-box b{color:var(--ink)}
 
 @media (max-width:640px){
   .app{padding:10px 8px 24px}
@@ -177,7 +173,7 @@ textarea.inp{resize:vertical;min-height:64px}
     </div>
     <span class="spacer"></span>
     <button class="btn" id="cats">Categorii</button>
-    <button class="btn" id="settings" title="Configurare Google Sheet sync">⚙ Sync</button>
+    <button class="btn" id="settings" title="Configurare sync">⚙ Sync</button>
     <button class="btn primary" id="add">+ Eveniment</button>
   </div>
   <div class="legend" id="legend"></div>
@@ -210,7 +206,7 @@ const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
 const addD=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d);};
 const dnum=s=>{const [y,m,d]=s.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5);};
-const dow=s=>(dnum(s)+3)%7;               // 0 = luni
+const dow=s=>(dnum(s)+3)%7;
 const mondayOf=s=>addD(s,-dow(s));
 const weekOf=s=>Math.floor(dnum(mondayOf(s))/7);
 function isoWeek(s){const dn=dnum(s);const thu=dn-dow(s)+3;const y=new Date(thu*864e5).getUTCFullYear();const j=Math.round(Date.UTC(y,0,1)/864e5);return Math.floor((thu-j)/7)+1;}
@@ -225,9 +221,13 @@ const MS=['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const isSmall=()=>window.innerWidth<=640;
 
-/* ---------- Google Apps Script config ---------- */
-const GAS_KEY='orar:gas_url';
-let gasUrl=localStorage.getItem(GAS_KEY)||'';
+/* ---------- GitHub sync config ---------- */
+const REPO = 'corneluu/orar2026';
+const FILE = 'data.json';
+const GH_API = 'https://api.github.com/repos/'+REPO+'/contents/'+FILE;
+const TOK_KEY = 'orar:gh_token';
+let ghToken = localStorage.getItem(TOK_KEY)||'';
+let fileSha = '';   // needed for GitHub PUT (update)
 
 /* ---------- data ---------- */
 const DEFAULT_CATS=[
@@ -293,65 +293,77 @@ function occurrencesOn(date){
   return res;
 }
 
-/* ---------- persistence & sync ---------- */
-let saveTimer=null, saving=false, dirty=false, lastRemoteHash='';
+/* ---------- GitHub sync ---------- */
+let saveTimer=null, saving=false, dirty=false;
 
-function setStatus(kind,msg){
+function setStatus(kind, msg){
   const el=$('#status');
-  el.className=kind==='error'?'err':kind==='ok'?'ok':'';
-  const map={saved:'✓ Sincronizat',saving:'Se sincronizează…',local:'Salvat local (fără sync)',
-    error:'Eroare sync — salvat local',loading:'Se încarcă…','':''};
-  el.textContent=msg||(map[kind]||'');
+  el.className = kind==='error'?'err': kind==='ok'?'ok':'';
+  const map={saved:'✓ Sincronizat',saving:'Se sincronizează…',
+    local:'Salvat local (fără sync)',error:'Eroare sync — salvat local',
+    loading:'Se încarcă…',''  :''};
+  el.textContent = msg||(map[kind]||'');
 }
 
-function persistLocal(){try{localStorage.setItem('orar:data',JSON.stringify(S));}catch(e){}}
-
-function dataHash(){return JSON.stringify(S);}
-
-function changed(){
-  persistLocal(); render();
-  if(!gasUrl){setStatus('local');return;}
-  dirty=true; setStatus('saving');
-  clearTimeout(saveTimer); saveTimer=setTimeout(flushToSheet,700);
+function persistLocal(){
+  try{localStorage.setItem('orar:data',JSON.stringify(S));}catch(e){}
 }
 
-async function flushToSheet(retry){
-  if(!gasUrl||!dirty) return;
-  if(saving){clearTimeout(saveTimer);saveTimer=setTimeout(flushToSheet,300);return;}
-  saving=true; dirty=false;
-  try{
-    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify({data:JSON.stringify(S)}),
-      headers:{'Content-Type':'text/plain'}}); // text/plain avoids CORS preflight
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    if(json.status!=='ok') throw new Error(json.message||'unknown');
-    saving=false; lastRemoteHash=dataHash(); setStatus(dirty?'saving':'saved');
-  }catch(err){
-    saving=false;
-    if(!retry){dirty=true;setTimeout(()=>flushToSheet(true),2000);return;}
-    setStatus('error');
-  }
-  if(dirty){clearTimeout(saveTimer);saveTimer=setTimeout(flushToSheet,300);}
+function ghHeaders(){
+  return {'Authorization':'token '+ghToken,'Content-Type':'application/json',
+    'Accept':'application/vnd.github.v3+json'};
 }
 
-async function loadFromSheet(){
-  if(!gasUrl){setStatus('local');return;}
+async function loadFromGitHub(){
+  if(!ghToken){setStatus('local');return;}
   setStatus('loading');
   try{
-    const res=await fetch(gasUrl+'?action=read',{cache:'no-store'});
+    const res = await fetch(GH_API+'?t='+Date.now(), {headers:ghHeaders(), cache:'no-store'});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    if(json.status!=='ok') throw new Error(json.message||'unknown');
-    if(json.data&&typeof json.data==='string'){
-      const remote=normalize(JSON.parse(json.data));
-      const remHash=JSON.stringify(remote);
-      if(remHash!==dataHash()){S=remote;persistLocal();render();}
-      lastRemoteHash=remHash;
+    const json = await res.json();
+    fileSha = json.sha;
+    const raw = atob(json.content.replace(/\n/g,''));
+    if(raw && raw!=='{}'){
+      const remote = normalize(JSON.parse(raw));
+      const remStr = JSON.stringify(remote);
+      if(remStr !== JSON.stringify(S)){S=remote; persistLocal(); render();}
     }
     setStatus('saved');
   }catch(err){
     setStatus('error','Sync offline — date locale');
   }
+}
+
+async function saveToGitHub(retry){
+  if(!ghToken||!dirty) return;
+  if(saving){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveToGitHub(),300);return;}
+  saving=true; dirty=false;
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const body={message:'sync: update calendar data',content,sha:fileSha||undefined};
+  try{
+    const res = await fetch(GH_API,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if(!res.ok){
+      const e=await res.json().catch(()=>({message:'HTTP '+res.status}));
+      throw new Error(e.message||'HTTP '+res.status);
+    }
+    const json = await res.json();
+    fileSha = json.content.sha;
+    saving=false;
+    setStatus(dirty?'saving':'saved');
+  }catch(err){
+    saving=false;
+    if(!retry){dirty=true;setTimeout(()=>saveToGitHub(true),2500);return;}
+    setStatus('error');
+  }
+  if(dirty){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveToGitHub(),300);}
+}
+
+function changed(){
+  persistLocal(); render();
+  if(!ghToken){setStatus('local');return;}
+  dirty=true; setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveToGitHub(),700);
 }
 
 /* ---------- header / controls ---------- */
@@ -587,7 +599,7 @@ function openEditor(o){
       }
       kids.push(h('div',{class:'fld row'},
         h('div',null,h('label',{class:'lab',for:'f-start'},'De la'),h('input',{id:'f-start',class:'inp',type:'time',step:'300',value:f.start,oninput:e=>{f.start=e.target.value;}})),
-        h('div',null,h('label',{class:'lab',for:'f-end'},'Până la'),h('input',{id:'f-end',class:'inp',type:'time',step:'300',value:f.end,oninput:e=>{f.end=e.target.value;}}))))
+        h('div',null,h('label',{class:'lab',for:'f-end'},'Până la'),h('input',{id:'f-end',class:'inp',type:'time',step:'300',value:f.end,oninput:e=>{f.end=e.target.value;}}))));
       if(isNew){
         kids.push(h('div',{class:'fld'},h('label',{class:'chk-row'},
           h('input',{type:'checkbox',checked:f.repeat,onchange:e=>{f.repeat=e.target.checked;if(f.repeat){f.days=[dow(f.date)];f.from=f.date;}draw();}}),
@@ -606,7 +618,7 @@ function openEditor(o){
           h('div',null,h('label',{class:'lab',for:'f-from'},'Începând cu'),
             h('input',{id:'f-from',class:'inp',type:'date',value:fromLocked?date:f.from,disabled:fromLocked?true:null,oninput:e=>{if(e.target.value)f.from=e.target.value;}})),
           h('div',null,h('label',{class:'lab',for:'f-until'},'Până la (opțional)'),
-            h('input',{id:'f-until',class:'inp',type:'date',value:f.until,oninput:e=>{f.until=e.target.value;}}))))
+            h('input',{id:'f-until',class:'inp',type:'date',value:f.until,oninput:e=>{f.until=e.target.value;}}))));
       }
       kids.push(h('div',{class:'fld'},h('label',{class:'lab',for:'f-note'},'Notițe'),
         h('textarea',{id:'f-note',class:'inp',placeholder:'Detalii, ce trebuie să iei cu tine…',value:f.note,oninput:e=>{f.note=e.target.value;}})));
@@ -663,7 +675,7 @@ function openEditor(o){
         key=occ.key;
       }else if(scope==='all'){
         Object.assign(base,fields); base.rec=recDef; key=occ.key;
-      }else{ // following
+      }else{
         if(date<=base.rec.from){ Object.assign(base,fields); base.rec=recDef; key=occ.key; }
         else{
           const ne=splitSeries(base,date);
@@ -710,41 +722,41 @@ function openCats(){
   });
 }
 
-/* ---------- settings / sync setup ---------- */
+/* ---------- sync settings ---------- */
 function openSettings(){
   openModal((box,close)=>{
-    let urlVal=gasUrl;
+    let tokVal=ghToken;
     function draw(){
+      const connected=!!ghToken;
       const kids=[
-        h('h2',null,'⚙ Configurare Google Sheet Sync'),
-        h('div',{class:'gas-setup'},
-          h('h3',null,'Cum setezi sincronizarea (o dată):'),
-          h('ol',null,
-            h('li',null,'Deschide Google Sheet-ul: ',h('a',{href:'https://docs.google.com/spreadsheets/d/1LmNZnQmIkTcdX0FoueNVdck31ctIwsuPPcCFMd78KQk/edit',target:'_blank',rel:'noopener'},'click aici')),
-            h('li',null,'Mergi la ',h('b',null,'Extensii → Apps Script')),
-            h('li',null,'Șterge tot și lipește codul din ',h('code',null,'Code.gs'),(document.querySelector?'' :' (găsit în repo-ul GitHub)'),'. Găsește fișierul ',h('code',null,'Code.gs'),' în repo.'),
-            h('li',null,'Click ',h('b',null,'Implementare → Implementare nouă')),
-            h('li',null,'Tip: ',h('b',null,'Aplicație web'),', Executare ca: ',h('b',null,'Eu'),', Acces: ',h('b',null,'Oricine')),
-            h('li',null,'Copiază URL-ul web app și lipește-l mai jos.')
-          )
+        h('h2',null,'⚙ Configurare Sync'),
+        h('div',{class:'info-box'},
+          h('b',null,'Cum funcționează: '),
+          'Calendarul tău este salvat în fișierul ',
+          h('code',null,'data.json'),
+          ' din repo-ul GitHub. Token-ul GitHub îți permite să scrii date din orice dispozitiv. ',
+          'Token-ul este salvat doar în browser (localStorage) — nu apare niciodată în codul public.'
         ),
         h('div',{class:'fld'},
-          h('label',{for:'gas-url'},'URL Web App (Google Apps Script)'),
-          h('input',{id:'gas-url',class:'inp',type:'url',placeholder:'https://script.google.com/macros/s/.../exec',
-            value:urlVal,oninput:e=>{urlVal=e.target.value.trim();}})),
+          h('label',{for:'gh-tok'},'GitHub Personal Access Token'+(connected?' (configurat ✓)':'')),
+          h('input',{id:'gh-tok',class:'inp',type:'password',
+            placeholder:connected?'••••••••••••••••••••••••':'ghp_xxxxxxxxxxxxxxxx',
+            value:tokVal,
+            oninput:e=>{tokVal=e.target.value.trim();}}),
+          h('p',{class:'hint'},'Generează un token la: github.com/settings/tokens (scope: repo)')),
         h('div',{class:'foot'},
-          h('button',{class:'btn danger',onclick:()=>{
-            gasUrl='';localStorage.removeItem(GAS_KEY);setStatus('local');close();
-          }},'Dezactivează sync'),
+          connected?h('button',{class:'btn danger',onclick:()=>{
+            ghToken='';localStorage.removeItem(TOK_KEY);setStatus('local');close();
+          }},'Deconectează'):null,
           h('span',{class:'spacer'}),
           h('button',{class:'btn',onclick:close},'Anulează'),
           h('button',{class:'btn primary',onclick:async()=>{
-            if(!urlVal){alert('Introdu URL-ul.');return;}
-            gasUrl=urlVal;
-            localStorage.setItem(GAS_KEY,gasUrl);
+            if(!tokVal){alert('Introdu token-ul.');return;}
+            ghToken=tokVal;
+            localStorage.setItem(TOK_KEY,ghToken);
             close();
-            await loadFromSheet();
-          }},'Salvează & sincronizează'))
+            await loadFromGitHub();
+          }},'Conectează & sincronizează'))
       ];
       box.replaceChildren(...kids);
     }
@@ -765,11 +777,10 @@ $('#settings').onclick=openSettings;
 let rt=null; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,150);});
 
 render();
-// Auto-sync on load if URL configured
-if(gasUrl) loadFromSheet(); else setStatus('local');
-
-// Poll for remote changes every 60s (multi-device sync)
-setInterval(()=>{ if(gasUrl&&!dirty&&!saving) loadFromSheet(); },60000);
+// Load from GitHub on start
+if(ghToken) loadFromGitHub(); else setStatus('local');
+// Poll every 60s for changes from other devices
+setInterval(()=>{ if(ghToken&&!dirty&&!saving) loadFromGitHub(); }, 60000);
 })();
 </script>
 </body>
