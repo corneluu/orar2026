@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0D1217" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F1F4F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#090D12" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F1F4F8" media="(prefers-color-scheme: light)">
 <title>Orarul meu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,9 +16,10 @@
    CSS VARIABLES & DESIGN TOKENS
    ========================================================================== */
 :root {
+  color-scheme: light;
   --bg: #F1F4F8;
   --surface: #FFFFFF;
-  --surface2: #F5F7FA;
+  --surface2: #F8FAFC;
   --surface3: #EAEFF5;
   --ink: #0F172A;
   --ink2: #475569;
@@ -34,6 +35,7 @@
   --danger-light: #FEE2E2;
   --success: #16A34A;
   --success-light: #DCFCE7;
+  --calendar-invert: 0;
   --hh: 56px;
   --radius-sm: 8px;
   --radius: 12px;
@@ -45,10 +47,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #090D12;
     --surface: #121820;
     --surface2: #18222D;
-    --surface3: #202D3B;
+    --surface3: #22303F;
     --ink: #F1F5F9;
     --ink2: #94A3B8;
     --ink3: #64748B;
@@ -63,14 +66,16 @@
     --danger-light: #450A0A;
     --success: #22C55E;
     --success-light: #052E16;
+    --calendar-invert: 1;
   }
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #090D12;
   --surface: #121820;
   --surface2: #18222D;
-  --surface3: #202D3B;
+  --surface3: #22303F;
   --ink: #F1F5F9;
   --ink2: #94A3B8;
   --ink3: #64748B;
@@ -85,6 +90,7 @@
   --danger-light: #450A0A;
   --success: #22C55E;
   --success-light: #052E16;
+  --calendar-invert: 1;
 }
 
 /* ==========================================================================
@@ -124,6 +130,102 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ==========================================================================
+   FORM INPUTS, LABELS & LAYOUT GRIDS
+   ========================================================================== */
+.fld {
+  margin-bottom: 12px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+}
+.row > * {
+  flex: 1;
+  min-width: 0;
+}
+.lab {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+  margin-bottom: 6px;
+}
+
+/* Universal styled inputs (Dark mode compliant, no white glare) */
+.inp, textarea.inp, select.inp,
+input[type="text"], input[type="date"], input[type="time"], input[type="password"], textarea, select {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 16px; /* 16px prevents iOS Safari auto zoom */
+  font-family: inherit;
+  font-weight: 500;
+  box-sizing: border-box;
+  display: block;
+  color-scheme: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+:root[data-theme="dark"] .inp,
+:root[data-theme="dark"] textarea.inp,
+:root[data-theme="dark"] select.inp,
+:root[data-theme="dark"] input[type="text"],
+:root[data-theme="dark"] input[type="date"],
+:root[data-theme="dark"] input[type="time"],
+:root[data-theme="dark"] input[type="password"],
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .inp,
+  :root:not([data-theme="light"]) textarea.inp,
+  :root:not([data-theme="light"]) select.inp,
+  :root:not([data-theme="light"]) input[type="text"],
+  :root:not([data-theme="light"]) input[type="date"],
+  :root:not([data-theme="light"]) input[type="time"],
+  :root:not([data-theme="light"]) input[type="password"],
+  :root:not([data-theme="light"]) textarea,
+  :root:not([data-theme="light"]) select {
+    background: var(--surface2);
+    color: var(--ink);
+    border-color: var(--line);
+    color-scheme: dark;
+  }
+}
+
+.inp:focus, textarea.inp:focus, select.inp:focus,
+input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, input[type="password"]:focus, textarea:focus {
+  border-color: var(--active-cat-color, var(--accent)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active-cat-color, var(--accent)) 20%, transparent);
+  outline: none;
+}
+
+textarea.inp, textarea {
+  resize: vertical;
+  min-height: 72px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* Custom Calendar & Clock Picker Icons in Inputs */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  filter: invert(var(--calendar-invert, 0));
+  transition: opacity 0.15s;
+  padding: 4px;
+  border-radius: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.08);
 }
 
 /* ==========================================================================
@@ -680,14 +782,14 @@ h1 {
 .ov {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
   padding: 16px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .sheet {
   background: var(--surface);
@@ -697,7 +799,7 @@ h1 {
   max-height: calc(100dvh - 36px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 80px rgba(0,0,0,0.45);
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5);
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -839,14 +941,15 @@ h1 {
   background: var(--surface);
   border-radius: var(--radius);
   padding: 12px 14px;
-  font-size: 17px;
+  font-size: 16.5px;
   font-weight: 700;
   color: var(--ink);
+  box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .title-input-big:focus {
   border-color: var(--active-cat-color, var(--accent));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active-cat-color, var(--accent)) 18%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active-cat-color, var(--accent)) 20%, transparent);
   outline: none;
 }
 .suggestions-wrap {
@@ -864,7 +967,7 @@ h1 {
 .sug-pill {
   font-size: 12px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 5px 11px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--surface2);
@@ -874,35 +977,50 @@ h1 {
   transition: all 0.1s;
 }
 .sug-pill:hover, .sug-pill:active {
-  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 15%, var(--surface));
+  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 16%, var(--surface));
   border-color: var(--active-cat-color, var(--accent));
   color: var(--ink);
   transform: scale(0.97);
 }
 
-/* Date & Time Engine Card */
-.time-card {
+/* Cards & Modules (Dark theme compliant) */
+.time-card, .rec-box, .extra-card, .status-card {
   background: var(--surface2);
   border: 1.5px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 14px;
   margin-bottom: 14px;
 }
+
+:root[data-theme="dark"] .time-card,
+:root[data-theme="dark"] .rec-box,
+:root[data-theme="dark"] .extra-card,
+:root[data-theme="dark"] .status-card,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .time-card,
+  :root:not([data-theme="light"]) .rec-box,
+  :root:not([data-theme="light"]) .extra-card,
+  :root:not([data-theme="light"]) .status-card {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: var(--line);
+  }
+}
+
 .time-card-title {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--ink3);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .duration-live-pill {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent);
@@ -911,17 +1029,19 @@ h1 {
   display: flex;
   gap: 6px;
   margin-top: 6px;
+  margin-bottom: 10px;
 }
 .date-jump-btn {
   flex: 1;
   border: 1px solid var(--line);
   background: var(--surface);
+  color: var(--ink);
   border-radius: var(--radius-sm);
-  padding: 5px 8px;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink2);
   text-align: center;
+  transition: background 0.12s;
 }
 .date-jump-btn:active {
   background: var(--surface3);
@@ -942,11 +1062,11 @@ h1 {
 .quick-dur-btn {
   border: 1px solid var(--line);
   background: var(--surface);
+  color: var(--ink);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 11px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink2);
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.1s;
@@ -958,13 +1078,6 @@ h1 {
 }
 
 /* Recurrence Section */
-.rec-box {
-  background: var(--surface2);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  margin-bottom: 14px;
-}
 .rec-header-row {
   display: flex;
   align-items: center;
@@ -978,6 +1091,34 @@ h1 {
   font-size: 14.5px;
   font-weight: 700;
   color: var(--ink);
+}
+
+/* Day of week picker buttons */
+.dpick-row {
+  display: flex;
+  gap: 6px;
+}
+.dpick {
+  flex: 1;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transition: all 0.12s;
+}
+.dpick:active {
+  transform: scale(0.94);
+}
+.dpick[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 /* Toggle Switch Component */
@@ -1030,6 +1171,7 @@ input:checked + .slider:before {
 .scope-card-btn {
   border: 1.5px solid var(--line);
   background: var(--surface);
+  color: var(--ink);
   border-radius: var(--radius);
   padding: 10px 6px;
   text-align: center;
@@ -1045,7 +1187,6 @@ input:checked + .slider:before {
 .scope-card-btn .sc-title {
   font-size: 12px;
   font-weight: 700;
-  color: var(--ink);
 }
 .scope-card-btn .sc-sub {
   font-size: 10px;
@@ -1054,7 +1195,7 @@ input:checked + .slider:before {
 }
 .scope-card-btn[aria-pressed="true"] {
   border-color: var(--active-cat-color, var(--accent));
-  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 12%, var(--surface));
+  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 16%, var(--surface));
   box-shadow: 0 2px 8px color-mix(in srgb, var(--active-cat-color, var(--accent)) 20%, transparent);
 }
 
@@ -1063,11 +1204,6 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface2);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  margin-bottom: 14px;
 }
 .status-card-label {
   display: flex;
@@ -1079,11 +1215,6 @@ input:checked + .slider:before {
 
 /* Extra Details Card (Location & Note) */
 .extra-card {
-  background: var(--surface2);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1107,6 +1238,15 @@ input:checked + .slider:before {
 .del-confirm-actions {
   display: flex;
   flex-wrap: wrap;
+  gap: 6px;
+}
+
+.err-msg {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 8px 0 0;
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -1149,10 +1289,10 @@ input:checked + .slider:before {
   flex: 1;
   border: 1.5px solid var(--line);
   background: var(--surface);
+  color: var(--ink);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   font-size: 15px;
-  color: var(--ink);
 }
 .cat-name-inp:focus {
   border-color: var(--accent);
@@ -1203,7 +1343,7 @@ input:checked + .slider:before {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.5);
 }
 .cp-wrap {
   position: fixed;
@@ -1480,7 +1620,7 @@ input:checked + .slider:before {
 "use strict";
 
 /* ==========================================================================
-   UTF-8 SAFE BASE64 ENCODER & DECODER (Handles Romanian diacritics perfectly)
+   UTF-8 SAFE BASE64 ENCODER & DECODER
    ========================================================================== */
 function utf8ToB64(str) {
   const bytes = new TextEncoder().encode(str);
@@ -2474,46 +2614,24 @@ function openEditor(o) {
       const durText = calcDurationText(f.start, f.end);
       const timeCardKids = [
         h("div", { class: "time-card-title" },
-          h("span", null, "⏰ Interval orar & Dată"),
+          h("span", null, "⏰ Dată & Interval orar"),
           h("span", { class: "duration-live-pill" }, `⏱️ Durată: ${durText}`)
         ),
-        h("div", { class: "fld row", style: "margin-bottom:8px;" },
-          h("div", null,
-            h("label", { class: "lab", for: "f-date" }, "Data"),
-            h("input", {
-              id: "f-date",
-              class: "inp",
-              type: "date",
-              value: f.date,
-              disabled: isRec ? true : null,
-              oninput: e => { if (e.target.value) { f.date = e.target.value; draw(); } }
-            })
-          ),
-          h("div", null,
-            h("label", { class: "lab", for: "f-start" }, "De la ora"),
-            h("input", {
-              id: "f-start",
-              class: "inp",
-              type: "time",
-              step: "300",
-              value: f.start,
-              oninput: e => { f.start = e.target.value; draw(); }
-            })
-          ),
-          h("div", null,
-            h("label", { class: "lab", for: "f-end" }, "Până la ora"),
-            h("input", {
-              id: "f-end",
-              class: "inp",
-              type: "time",
-              step: "300",
-              value: f.end,
-              oninput: e => { f.end = e.target.value; draw(); }
-            })
-          )
+        // Row 1: Full-width Date Picker
+        h("div", { class: "fld", style: "margin-bottom:6px;" },
+          h("label", { class: "lab", for: "f-date" }, "Data desfășurării"),
+          h("input", {
+            id: "f-date",
+            class: "inp",
+            type: "date",
+            value: f.date,
+            disabled: isRec ? true : null,
+            oninput: e => { if (e.target.value) { f.date = e.target.value; draw(); } }
+          })
         )
       ];
 
+      // Quick Date Jump Buttons
       if (!isRec) {
         timeCardKids.push(h("div", { class: "date-jump-row" },
           h("button", { class: "date-jump-btn", onclick: () => { f.date = iso(new Date()); draw(); } }, "Azi"),
@@ -2521,6 +2639,32 @@ function openEditor(o) {
           h("button", { class: "date-jump-btn", onclick: () => { f.date = addD(iso(new Date()), 7); draw(); } }, "+7 Zile")
         ));
       }
+
+      // Row 2: Start and End Time Side-by-Side (Clean 2 columns)
+      timeCardKids.push(h("div", { class: "row", style: "margin-bottom:8px;" },
+        h("div", null,
+          h("label", { class: "lab", for: "f-start" }, "De la ora"),
+          h("input", {
+            id: "f-start",
+            class: "inp",
+            type: "time",
+            step: "300",
+            value: f.start,
+            oninput: e => { f.start = e.target.value; draw(); }
+          })
+        ),
+        h("div", null,
+          h("label", { class: "lab", for: "f-end" }, "Până la ora"),
+          h("input", {
+            id: "f-end",
+            class: "inp",
+            type: "time",
+            step: "300",
+            value: f.end,
+            oninput: e => { f.end = e.target.value; draw(); }
+          })
+        )
+      ));
 
       // Quick duration buttons
       timeCardKids.push(h("div", { class: "quick-durations" },
@@ -2622,7 +2766,7 @@ function openEditor(o) {
         ));
 
         const fromLocked = isRec && scope === "following";
-        recKids.push(h("div", { class: "fld row", style: "margin-top:10px;margin-bottom:0;" },
+        recKids.push(h("div", { class: "row", style: "margin-top:10px;margin-bottom:0;" },
           h("div", null,
             h("label", { class: "lab", for: "f-from" }, "Începând cu data"),
             h("input", {
@@ -2650,20 +2794,20 @@ function openEditor(o) {
 
       bodyKids.push(h("div", { class: "rec-box" }, ...recKids));
 
-      // 7. Extra Details Card (Location & Notes)
+      // 7. Extra Details Card (Location & Notes with clean separation)
       bodyKids.push(h("div", { class: "extra-card" },
-        h("div", null,
+        h("div", { class: "fld", style: "margin-bottom:6px;" },
           h("label", { class: "lab", for: "f-loc" }, "📍 Locație / Sală / Link"),
           h("input", {
             id: "f-loc",
             class: "inp",
             type: "text",
-            placeholder: "Ex: Sala 304, Campus Leu, sau link Zoom/Google Maps",
+            placeholder: "Ex: Sala 304, Campus Leu, sau link Zoom / Maps",
             value: f.loc,
             oninput: e => { f.loc = e.target.value; }
           })
         ),
-        h("div", null,
+        h("div", { class: "fld", style: "margin-bottom:0;" },
           h("label", { class: "lab", for: "f-note" }, "📝 Notițe & Detalii"),
           h("textarea", {
             id: "f-note",
@@ -2964,7 +3108,7 @@ function openSettings() {
 
       const bodyEl = h("div", { class: "sheet-body" },
         h("div", { class: "fld" },
-          h("label", { for: "gh-tok" }, "GitHub Access Token" + (connected ? " ✓ (Conectat)" : "")),
+          h("label", { class: "lab", for: "gh-tok" }, "GitHub Access Token" + (connected ? " ✓ (Conectat)" : "")),
           h("input", {
             id: "gh-tok",
             class: "inp",
@@ -2973,7 +3117,7 @@ function openSettings() {
             value: tokVal,
             oninput: e => { tokVal = e.target.value.trim(); }
           }),
-          h("p", { class: "sub", style: "margin-top:6px;font-size:12px;" }, "Token-ul rămâne stocat doar în acest dispozitiv (localStorage).")
+          h("p", { class: "sub", style: "margin-top:6px;font-size:12px;color:var(--ink3);" }, "Token-ul rămâne stocat doar în acest dispozitiv (localStorage).")
         )
       );
 
