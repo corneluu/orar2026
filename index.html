@@ -3383,26 +3383,34 @@ function openNotifs() {
     }
 
     async function testEmail(btn) {
-      const resendKey = (n.resendApiKey || "").trim();
       const email = (n.email || "").trim();
       if (!email) { setFeedback(btn.parentNode, "error", "Introdu adresa de email mai intai."); return; }
-      if (!resendKey) { setFeedback(btn.parentNode, "error", "Resend API Key lipseste (adauga-l ca GitHub Secret)."); return; }
+      if (!ghToken) {
+        setFeedback(btn.parentNode, "error", "Conecteaza-te la GitHub mai intai (butonul din header).");
+        return;
+      }
       btn.disabled = true;
-      setFeedback(btn.parentNode, "loading", "Se trimite...");
+      setFeedback(btn.parentNode, "loading", "Se declanseaza prin GitHub Actions...");
       try {
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { "Authorization": "Bearer " + resendKey, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            from: "Orarul meu <onboarding@resend.dev>",
-            to: [email],
-            subject: "Test Notificari Orar",
-            html: "<div style=\"font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #E2E8F0;border-radius:16px;\"><div style=\"height:5px;background:#0284C7;border-radius:3px;margin-bottom:16px;\"></div><h2 style=\"margin:0 0 8px;color:#0F172A;\">Test Notificari Orar</h2><p style=\"color:#475569;\">Sistemul de notificari prin Email functioneaza! Vei primi remindere automate.</p><a href=\"https://corneluu.github.io/orar2026/\" style=\"display:inline-block;background:#0284C7;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;margin-top:8px;\">Deschide Orarul</a></div>"
-          })
-        });
-        const r = await res.json();
-        if (!res.ok) throw new Error(JSON.stringify(r));
-        setFeedback(btn.parentNode, "success", "Email trimis la " + email);
+        saveN();
+        const res = await fetch(
+          "https://api.github.com/repos/corneluu/orar2026/actions/workflows/reminders.yml/dispatches",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + ghToken,
+              "Accept": "application/vnd.github+json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ ref: "main", inputs: { test_mode: "true" } })
+          }
+        );
+        if (res.status === 204 || res.ok) {
+          setFeedback(btn.parentNode, "success", "Trimis! Verifica emailul in ~30-60 secunde.");
+        } else {
+          const r = await res.json().catch(() => ({ message: "HTTP " + res.status }));
+          throw new Error(r.message);
+        }
       } catch(err) {
         setFeedback(btn.parentNode, "error", "Eroare: " + err.message);
       }
