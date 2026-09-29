@@ -1463,6 +1463,117 @@ input:checked + .slider:before {
 }
 
 /* ==========================================================================
+   NOTIFICATIONS STYLES
+   ========================================================================== */
+.notif-card {
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+.notif-card:focus-within {
+  border-color: var(--accent);
+}
+.notif-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.notif-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.notif-badge.active {
+  background: rgba(22, 163, 74, 0.16);
+  color: #16A34A;
+}
+.notif-badge.muted {
+  background: var(--surface3);
+  color: var(--ink3);
+}
+.notif-guide {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+.notif-guide summary {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-wrap {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.toggle-wrap input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--line);
+  border-radius: 24px;
+  transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--surface);
+  border-radius: 50%;
+  transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.toggle-wrap input:checked + .toggle-slider {
+  background-color: var(--accent);
+}
+.toggle-wrap input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+.test-feedback {
+  padding: 5px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.test-feedback.loading {
+  background: var(--surface3);
+  color: var(--ink2);
+}
+.test-feedback.success {
+  background: rgba(22, 163, 74, 0.14);
+  color: #16A34A;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+.test-feedback.error {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* ==========================================================================
    MOBILE-SPECIFIC REFINEMENTS (< 640px)
    ========================================================================== */
 @media (max-width: 640px) {
@@ -1571,6 +1682,7 @@ input:checked + .slider:before {
     </div>
     <div class="top-actions">
       <button class="btn icon" id="cats" title="Gestionează categoriile" aria-label="Categorii">🎨</button>
+      <button class="btn icon" id="notifs" title="Notificări & Memento-uri (Telegram / Email)" aria-label="Notificări">🔔</button>
       <button class="btn icon" id="settings" title="Sincronizare Cloud" aria-label="Sincronizare">⚙</button>
       <button class="btn primary" id="add">+ Eveniment</button>
     </div>
@@ -2080,7 +2192,8 @@ function normalize(o) {
     cats,
     events,
     ov: d.ov && typeof d.ov === "object" ? d.ov : {},
-    done: d.done && typeof d.done === "object" ? d.done : {}
+    done: d.done && typeof d.done === "object" ? d.done : {},
+    notifications: d.notifications && typeof d.notifications === "object" ? d.notifications : {}
   };
 }
 
@@ -3177,6 +3290,275 @@ function openSettings() {
 }
 
 /* ==========================================================================
+   NOTIFICATIONS MODAL
+   ========================================================================== */
+function openNotifs() {
+  const N_KEY = "orar:notifs";
+  let n = Object.assign({
+    email: "mcornel1178@gmail.com",
+    phone: "0771569557",
+    telegramBotToken: "",
+    telegramChatId: "",
+    notifyTelegram: true,
+    notifyEmail: true,
+    timing: [15, 30],
+    morningSummary: true
+  }, S.notifications || {});
+
+  try {
+    const ls = JSON.parse(localStorage.getItem(N_KEY) || "{}");
+    n = Object.assign(n, ls);
+  } catch(e) {}
+
+  openModal((box, close) => {
+    function saveN() {
+      S.notifications = { ...n };
+      changed();
+      try { localStorage.setItem(N_KEY, JSON.stringify(n)); } catch(e) {}
+    }
+
+    function mkToggle(id, checked, onChange) {
+      const wrap = h("label", { class: "toggle-wrap" });
+      const inp = h("input", { type: "checkbox" });
+      inp.id = id;
+      inp.checked = !!checked;
+      inp.onchange = e => onChange(e.target.checked);
+      const slider = h("span", { class: "toggle-slider" });
+      wrap.append(inp, slider);
+      return wrap;
+    }
+
+    function mkTimingChip(mins, label) {
+      const active = n.timing.includes(mins);
+      const btn = h("button", {
+        class: "quick-dur-btn",
+        onclick() {
+          if (n.timing.includes(mins)) {
+            n.timing = n.timing.filter(x => x !== mins);
+          } else {
+            n.timing = [...n.timing, mins].sort((a,b) => a - b);
+          }
+          saveN(); draw();
+        }
+      }, label);
+      if (active) {
+        btn.style.cssText = "background:var(--accent);color:var(--on-accent);border-color:var(--accent);";
+      }
+      return btn;
+    }
+
+    let feedbackEl = null;
+    function setFeedback(container, state, text) {
+      if (feedbackEl && feedbackEl.parentNode) feedbackEl.remove();
+      feedbackEl = h("span", { class: "test-feedback " + state }, text);
+      container.append(feedbackEl);
+    }
+
+    async function testTelegram(btn) {
+      const token = (n.telegramBotToken || "").trim();
+      const chatId = (n.telegramChatId || "").trim();
+      if (!token || !chatId) {
+        setFeedback(btn.parentNode, "error", "Introdu Bot Token si Chat ID mai intai.");
+        return;
+      }
+      btn.disabled = true;
+      setFeedback(btn.parentNode, "loading", "Se trimite...");
+      try {
+        const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: "<b>Test Orar – Telegram functioneaza!</b>\n\nSistemul de notificari a fost configurat cu succes. Vei primi remindere automate pentru evenimentele tale!\n\n<a href=\"https://corneluu.github.io/orar2026/\">Deschide Orarul Meu</a>",
+            parse_mode: "HTML"
+          })
+        });
+        const r = await res.json();
+        if (!r.ok) throw new Error(r.description);
+        setFeedback(btn.parentNode, "success", "Mesaj Telegram trimis cu succes!");
+      } catch(err) {
+        setFeedback(btn.parentNode, "error", "Eroare: " + err.message);
+      }
+      btn.disabled = false;
+    }
+
+    async function testEmail(btn) {
+      const resendKey = (n.resendApiKey || "").trim();
+      const email = (n.email || "").trim();
+      if (!email) { setFeedback(btn.parentNode, "error", "Introdu adresa de email mai intai."); return; }
+      if (!resendKey) { setFeedback(btn.parentNode, "error", "Resend API Key lipseste (adauga-l ca GitHub Secret)."); return; }
+      btn.disabled = true;
+      setFeedback(btn.parentNode, "loading", "Se trimite...");
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + resendKey, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: "Orarul meu <onboarding@resend.dev>",
+            to: [email],
+            subject: "Test Notificari Orar",
+            html: "<div style=\"font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #E2E8F0;border-radius:16px;\"><div style=\"height:5px;background:#0284C7;border-radius:3px;margin-bottom:16px;\"></div><h2 style=\"margin:0 0 8px;color:#0F172A;\">Test Notificari Orar</h2><p style=\"color:#475569;\">Sistemul de notificari prin Email functioneaza! Vei primi remindere automate.</p><a href=\"https://corneluu.github.io/orar2026/\" style=\"display:inline-block;background:#0284C7;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;margin-top:8px;\">Deschide Orarul</a></div>"
+          })
+        });
+        const r = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(r));
+        setFeedback(btn.parentNode, "success", "Email trimis la " + email);
+      } catch(err) {
+        setFeedback(btn.parentNode, "error", "Eroare: " + err.message);
+      }
+      btn.disabled = false;
+    }
+
+    function draw() {
+      feedbackEl = null;
+      const hasTg = !!(n.telegramBotToken && n.telegramChatId);
+      const hasEmail = !!n.email;
+
+      const headEl = h("div", { class: "sheet-head-pro" },
+        h("div", { class: "sheet-head-info" },
+          h("h2", null, "Notificari"),
+          h("p", { class: "sub" }, "Remindere automate prin Telegram si Email.")
+        ),
+        h("button", { class: "sheet-close-btn", title: "Inchide", onclick: close }, "x")
+      );
+
+      // Telegram section
+      const tgBtn = h("button", { class: "btn", style: "font-size:12.5px;" }, "Trimite test Telegram");
+      tgBtn.onclick = () => testTelegram(tgBtn);
+      const tgFeedbackRow = h("div", { style: "display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;" }, tgBtn);
+
+      const tgSection = h("div", { class: "notif-card", style: "margin-bottom:14px;" },
+        h("div", { class: "notif-card-header" },
+          h("div", { style: "display:flex;align-items:center;gap:8px;" },
+            h("span", { style: "font-size:20px;" }, "✈"),
+            h("div", null,
+              h("div", { style: "font-weight:700;font-size:14px;" }, "Telegram"),
+              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasTg ? "Configurat ✓" : "Necesita bot token")
+            )
+          ),
+          h("div", { style: "display:flex;align-items:center;gap:8px;" },
+            h("span", { class: "notif-badge " + (n.notifyTelegram && hasTg ? "active" : "muted") },
+              n.notifyTelegram && hasTg ? "ACTIV" : "INACTIV"),
+            mkToggle("tg-on", n.notifyTelegram, v => { n.notifyTelegram = v; saveN(); draw(); })
+          )
+        ),
+        h("div", { class: "fld", style: "margin-top:12px;" },
+          h("label", { class: "lab" }, "Bot Token"),
+          h("input", {
+            class: "inp", type: "password",
+            placeholder: "1234567890:AAxxxxxxxxxxxxxxxxxx",
+            value: n.telegramBotToken || "",
+            oninput: e => { n.telegramBotToken = e.target.value.trim(); saveN(); }
+          })
+        ),
+        h("div", { class: "fld", style: "margin-top:8px;" },
+          h("label", { class: "lab" }, "Chat ID"),
+          h("input", {
+            class: "inp", type: "text",
+            placeholder: "123456789",
+            value: n.telegramChatId || "",
+            oninput: e => { n.telegramChatId = e.target.value.trim(); saveN(); }
+          })
+        ),
+        tgFeedbackRow,
+        h("details", { class: "notif-guide" },
+          h("summary", null, "Cum obtii Bot Token si Chat ID?"),
+          h("ol", { style: "font-size:12px;color:var(--ink2);margin:8px 0 0;padding-left:18px;line-height:2;" },
+            h("li", null, "Deschide Telegram, cauta @BotFather si trimite /newbot"),
+            h("li", null, "Copiaza Bot Token-ul primit"),
+            h("li", null, "Trimite orice mesaj botului nou creat"),
+            h("li", null, "Cauta @userinfobot -> trimite /start -> copiaza Id:")
+          )
+        )
+      );
+
+      // Email section
+      const emailBtn = h("button", { class: "btn", style: "font-size:12.5px;" }, "Trimite test Email");
+      emailBtn.onclick = () => testEmail(emailBtn);
+      const emailFeedbackRow = h("div", { style: "display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;" }, emailBtn);
+
+      const emailSection = h("div", { class: "notif-card", style: "margin-bottom:14px;" },
+        h("div", { class: "notif-card-header" },
+          h("div", { style: "display:flex;align-items:center;gap:8px;" },
+            h("span", { style: "font-size:20px;" }, "✉️"),
+            h("div", null,
+              h("div", { style: "font-weight:700;font-size:14px;" }, "Email"),
+              h("div", { style: "font-size:12px;color:var(--ink3);" }, hasEmail ? n.email : "Adauga adresa")
+            )
+          ),
+          h("div", { style: "display:flex;align-items:center;gap:8px;" },
+            h("span", { class: "notif-badge " + (n.notifyEmail && hasEmail ? "active" : "muted") },
+              n.notifyEmail && hasEmail ? "ACTIV" : "INACTIV"),
+            mkToggle("email-on", n.notifyEmail, v => { n.notifyEmail = v; saveN(); draw(); })
+          )
+        ),
+        h("div", { class: "fld", style: "margin-top:12px;" },
+          h("label", { class: "lab" }, "Adresa Email"),
+          h("input", {
+            class: "inp", type: "email",
+            placeholder: "adresa@gmail.com",
+            value: n.email || "",
+            oninput: e => { n.email = e.target.value.trim(); saveN(); }
+          })
+        ),
+        emailFeedbackRow,
+        h("details", { class: "notif-guide" },
+          h("summary", null, "Cum configurezi Email-ul?"),
+          h("p", { style: "font-size:12px;color:var(--ink2);margin:8px 0 0;line-height:1.8;" },
+            "Email-ul se trimite prin GitHub Actions (gratuit). Mergi la resend.com -> inregistreaza-te -> copiaza API Key -> adauga-l ca GitHub Secret cu numele RESEND_API_KEY."
+          )
+        )
+      );
+
+      // Timing section
+      const timingSection = h("div", { class: "notif-card", style: "margin-bottom:14px;" },
+        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:10px;" }, "Cand sa primesti remindere?"),
+        h("div", { style: "display:flex;flex-wrap:wrap;gap:8px;" },
+          mkTimingChip(10, "10 min"),
+          mkTimingChip(15, "15 min"),
+          mkTimingChip(30, "30 min"),
+          mkTimingChip(60, "1 ora"),
+          mkTimingChip(120, "2 ore")
+        ),
+        h("div", { class: "notif-card-header", style: "margin-top:14px;" },
+          h("div", null,
+            h("div", { style: "font-weight:700;font-size:13.5px;" }, "Sumar dimineata (08:00)"),
+            h("div", { style: "font-size:12px;color:var(--ink3);" }, "Lista evenimentelor din ziua curenta")
+          ),
+          mkToggle("morning-on", n.morningSummary, v => { n.morningSummary = v; saveN(); draw(); })
+        )
+      );
+
+      // Secrets info section
+      const secretsSection = h("div", { class: "notif-card" },
+        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:8px;" }, "GitHub Secrets (backend automat)"),
+        h("p", { style: "font-size:12px;color:var(--ink2);margin:0 0 8px;line-height:1.7;" },
+          "Adauga aceste secrete la: github.com -> orar2026 -> Settings -> Secrets & Variables -> Actions"
+        ),
+        h("div", { style: "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11.5px;font-family:monospace;line-height:2;color:var(--ink2);" },
+          h("div", null, "TELEGRAM_BOT_TOKEN"),
+          h("div", null, "TELEGRAM_CHAT_ID"),
+          h("div", null, "RESEND_API_KEY"),
+          h("div", null, "NOTIFICATION_EMAIL = mcornel1178@gmail.com")
+        )
+      );
+
+      const bodyEl = h("div", { class: "sheet-body" },
+        tgSection, emailSection, timingSection, secretsSection
+      );
+
+      const footEl = h("div", { class: "sheet-foot" },
+        h("span", { style: "flex:1;font-size:11px;color:var(--ink3);" }, "Setarile se salveaza automat"),
+        h("button", { class: "btn", onclick: close }, "Inchide")
+      );
+
+      box.replaceChildren(headEl, bodyEl, footEl);
+    }
+    draw();
+  });
+}
+
+/* ==========================================================================
    EVENT LISTENERS & APP INITIALIZATION
    ========================================================================== */
 $("#prev").onclick = () => nav(-1);
@@ -3195,6 +3577,7 @@ $("#zin").onclick = () => { ui.hh = Math.min(140, ui.hh + 12); saveUi(); render(
 $("#zout").onclick = () => { ui.hh = Math.max(28, ui.hh - 12); saveUi(); render(); };
 $("#add").onclick = () => openEditor({ date: ui.view === "month" ? iso(new Date()) : ui.cursor });
 $("#cats").onclick = openCats;
+$("#notifs").onclick = openNotifs;
 $("#settings").onclick = openSettings;
 
 let resizeTimer = null;
