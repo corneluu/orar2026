@@ -10,7 +10,7 @@
 <title>Orarul meu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================================
    CSS VARIABLES & DESIGN TOKENS
@@ -37,7 +37,8 @@
   --hh: 56px;
   --radius-sm: 8px;
   --radius: 12px;
-  --radius-lg: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-head: "Bricolage Grotesque", var(--font-ui);
 }
@@ -134,7 +135,6 @@ button {
   padding: 12px 14px 28px;
 }
 
-/* Top bar: Title + Status + Action */
 .top-header {
   display: flex;
   align-items: center;
@@ -149,7 +149,7 @@ button {
   min-width: 0;
 }
 h1 {
-  font: 700 22px/1.2 var(--font-head);
+  font: 800 22px/1.2 var(--font-head);
   margin: 0;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -161,7 +161,7 @@ h1 {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 3px 9px;
   border-radius: 999px;
   background: var(--surface2);
@@ -213,7 +213,6 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Secondary controls bar */
 .controls-bar {
   display: flex;
   flex-wrap: wrap;
@@ -289,12 +288,12 @@ h1 {
   background: var(--surface);
   color: var(--ink);
   border-radius: var(--radius);
-  padding: 8px 13px;
+  padding: 8px 14px;
   font-weight: 600;
   font-size: 13.5px;
   min-height: 38px;
   line-height: 1;
-  transition: transform 0.08s, background 0.12s;
+  transition: transform 0.08s, background 0.12s, box-shadow 0.12s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .btn:active {
@@ -305,7 +304,7 @@ h1 {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .btn.primary:active {
   filter: brightness(0.95);
@@ -314,12 +313,14 @@ h1 {
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
 }
+.btn.danger:active {
+  background: var(--danger-light);
+}
 .btn.icon {
-  padding: 8px 10px;
+  padding: 8px 11px;
   min-width: 38px;
 }
 
-/* Category Legend bar (Horizontal scrollable on mobile) */
 .legend-scroll {
   display: flex;
   align-items: center;
@@ -337,13 +338,13 @@ h1 {
   --c: #888;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   border: 1.5px solid var(--line);
   background: var(--surface);
   border-radius: 999px;
   padding: 5px 12px 5px 9px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
   flex-shrink: 0;
@@ -373,11 +374,11 @@ h1 {
 }
 .totals b {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ==========================================================================
-   MONTH VIEW (Responsive & Touch Friendly)
+   MONTH VIEW
    ========================================================================== */
 .month {
   background: var(--surface);
@@ -471,16 +472,16 @@ h1 {
   text-align: left;
   border: 0;
   border-left: 3.5px solid var(--c);
-  background: color-mix(in srgb, var(--c) 15%, var(--surface));
-  border-radius: 4px;
-  padding: 2px 4px;
+  background: color-mix(in srgb, var(--c) 16%, var(--surface));
+  border-radius: 5px;
+  padding: 2.5px 5px;
   font-size: 11.5px;
   line-height: 1.25;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
   transition: transform 0.08s;
 }
 .chip:active {
@@ -500,7 +501,7 @@ h1 {
   background: transparent;
   color: var(--accent);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
   padding: 2px 4px;
 }
@@ -554,7 +555,7 @@ h1 {
   min-width: 28px;
   height: 28px;
   border-radius: 14px;
-  font: 700 15px var(--font-head);
+  font: 800 15px var(--font-head);
   padding: 0 4px;
   margin-top: 2px;
 }
@@ -574,7 +575,7 @@ h1 {
   right: 6px;
   font-size: 11px;
   color: var(--ink3);
-  font-weight: 600;
+  font-weight: 700;
   transform: translateY(-50%);
 }
 .dc {
@@ -596,7 +597,7 @@ h1 {
   border-radius: var(--radius-sm);
   border-left: 4px solid var(--c);
   background: color-mix(in srgb, var(--c) 20%, var(--surface));
-  padding: 3px 6px;
+  padding: 4px 6px;
   font-size: 12px;
   line-height: 1.25;
   cursor: pointer;
@@ -615,6 +616,15 @@ h1 {
   color: var(--ink2);
   font-size: 10.5px;
   display: block;
+}
+.ev .loc-badge {
+  font-size: 10px;
+  color: var(--ink2);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
 }
 .ev b {
   font-weight: 700;
@@ -665,157 +675,438 @@ h1 {
 }
 
 /* ==========================================================================
-   MODAL DIALOG / MOBILE BOTTOM SHEET
+   PRO EVENT MODAL & FORM STYLING
    ========================================================================== */
 .ov {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
   padding: 16px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .sheet {
   background: var(--surface);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   width: 100%;
-  max-width: 520px;
-  max-height: calc(100dvh - 32px);
+  max-width: 540px;
+  max-height: calc(100dvh - 36px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+  box-shadow: 0 25px 80px rgba(0,0,0,0.45);
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--line);
   animation: sheet-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes sheet-in {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
   to { opacity: 1; transform: none; }
 }
 
-.sheet-head {
-  padding: 20px 20px 10px;
+/* Dynamic Category Color Strip at Top */
+.sheet-top-strip {
+  height: 5px;
+  width: 100%;
+  background: var(--active-cat-color, var(--accent));
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 14px color-mix(in srgb, var(--active-cat-color, var(--accent)) 40%, transparent);
   flex-shrink: 0;
 }
-.sheet-head h2 {
-  font: 700 20px/1.2 var(--font-head);
-  margin: 0;
+
+.sheet-head-pro {
+  padding: 16px 20px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
 }
-.sheet-head .sub {
+.sheet-head-info {
+  min-width: 0;
+}
+.sheet-head-info h2 {
+  font: 800 21px/1.2 var(--font-head);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sheet-head-info .sub {
   color: var(--ink2);
   font-size: 13px;
   margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sheet-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--ink2);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+.sheet-close-btn:active {
+  background: var(--surface3);
+  transform: scale(0.92);
 }
 
 .sheet-body {
-  padding: 10px 20px 20px;
+  padding: 8px 20px 18px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   flex: 1;
 }
 
 .sheet-foot {
-  padding: 14px 20px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--line2);
   background: var(--surface2);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-/* Form inputs (Prevent iOS auto-zoom by enforcing 16px) */
-.fld {
+/* Category Cards Selector */
+.cat-picker-grid {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 3px 2px 8px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+.cat-picker-grid::-webkit-scrollbar {
+  display: none;
+}
+.cat-chip-btn {
+  --c: #888;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 6px 14px 6px 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cat-chip-btn:active {
+  transform: scale(0.95);
+}
+.cat-chip-btn .dot-ind {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+}
+.cat-chip-btn[aria-pressed="true"] {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 16%, var(--surface));
+  color: var(--ink);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 25%, transparent);
+}
+.cat-chip-btn.add-cat-quick {
+  border-style: dashed;
+  color: var(--accent);
+}
+
+/* Title Input & Suggestions */
+.title-fld {
   margin-bottom: 14px;
 }
-.fld > label, .lab {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink2);
-  margin-bottom: 6px;
-}
-.inp, textarea.inp, select.inp {
+.title-input-big {
   width: 100%;
   border: 1.5px solid var(--line);
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 10px 12px;
-  font-size: 16px; /* 16px prevents iOS Safari auto zoom */
+  padding: 12px 14px;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--ink);
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.inp:focus {
-  border-color: var(--accent);
+.title-input-big:focus {
+  border-color: var(--active-cat-color, var(--accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active-cat-color, var(--accent)) 18%, transparent);
   outline: none;
 }
-textarea.inp {
-  resize: vertical;
-  min-height: 64px;
-  font-size: 15px;
-}
-.row {
+.suggestions-wrap {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 2px 2px;
+  scrollbar-width: none;
 }
-.row > * {
-  flex: 1;
-  min-width: 0;
+.suggestions-wrap::-webkit-scrollbar {
+  display: none;
+}
+.sug-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--ink2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.1s;
+}
+.sug-pill:hover, .sug-pill:active {
+  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 15%, var(--surface));
+  border-color: var(--active-cat-color, var(--accent));
+  color: var(--ink);
+  transform: scale(0.97);
 }
 
-/* Day of week picker buttons */
-.dpick-row {
+/* Date & Time Engine Card */
+.time-card {
+  background: var(--surface2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.time-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink3);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.duration-live-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.date-jump-row {
   display: flex;
   gap: 6px;
+  margin-top: 6px;
 }
-.dpick {
+.date-jump-btn {
   flex: 1;
-  height: 42px;
+  border: 1px solid var(--line);
+  background: var(--surface);
   border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  text-align: center;
+}
+.date-jump-btn:active {
+  background: var(--surface3);
+}
+
+.quick-durations {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 10px;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.quick-durations::-webkit-scrollbar {
+  display: none;
+}
+.quick-dur-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.1s;
+}
+.quick-dur-btn:active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+/* Recurrence Section */
+.rec-box {
+  background: var(--surface2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.rec-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.rec-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Toggle Switch Component */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--ink3);
+  transition: .2s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+input:checked + .slider {
+  background-color: var(--active-cat-color, var(--accent));
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Series Scope Selector Cards */
+.scope-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.scope-card-btn {
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-weight: 700;
-  font-size: 13px;
-  display: grid;
-  place-items: center;
-  padding: 0;
+  border-radius: var(--radius);
+  padding: 10px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   transition: all 0.12s;
 }
-.dpick:active {
-  transform: scale(0.94);
+.scope-card-btn .sc-icon {
+  font-size: 18px;
 }
-.dpick[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
+.scope-card-btn .sc-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.scope-card-btn .sc-sub {
+  font-size: 10px;
+  color: var(--ink3);
+  line-height: 1.15;
+}
+.scope-card-btn[aria-pressed="true"] {
+  border-color: var(--active-cat-color, var(--accent));
+  background: color-mix(in srgb, var(--active-cat-color, var(--accent)) 12%, var(--surface));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--active-cat-color, var(--accent)) 20%, transparent);
 }
 
-.chk-row {
+/* Status Complete Card */
+.status-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14.5px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 4px 0;
+  justify-content: space-between;
+  background: var(--surface2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 14px;
 }
-.chk-row input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
-  margin: 0;
+.status-card-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.err-msg {
+/* Extra Details Card (Location & Note) */
+.extra-card {
+  background: var(--surface2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Delete confirmation box */
+.del-confirm-box {
+  background: var(--danger-light);
+  border: 1.5px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 10px;
+  width: 100%;
+}
+.del-confirm-box p {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--danger);
-  font-size: 13px;
-  margin: 8px 0 0;
+}
+.del-confirm-actions {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -906,7 +1197,7 @@ textarea.inp {
 }
 
 /* ==========================================================================
-   PROFESSIONAL COLOR PICKER (Desktop & Mobile Optimized)
+   COLOR PICKER
    ========================================================================== */
 .cp-overlay {
   position: fixed;
@@ -1041,7 +1332,7 @@ textarea.inp {
 }
 
 /* ==========================================================================
-   MOBILE-SPECIFIC ENHANCEMENTS (< 640px)
+   MOBILE-SPECIFIC REFINEMENTS (< 640px)
    ========================================================================== */
 @media (max-width: 640px) {
   .app {
@@ -1093,35 +1384,34 @@ textarea.inp {
     padding: 0;
   }
   .sheet {
-    border-radius: 20px 20px 0 0;
-    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    max-height: 94dvh;
     animation: sheet-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .sheet::before {
     content: "";
     display: block;
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
+    width: 40px;
+    height: 4.5px;
+    border-radius: 3px;
     background: var(--ink3);
     margin: 8px auto 0;
-    opacity: 0.5;
+    opacity: 0.45;
   }
   @keyframes sheet-slide-up {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
   }
-  .sheet-head {
-    padding: 12px 16px 8px;
+  .sheet-head-pro {
+    padding: 10px 16px 8px;
   }
   .sheet-body {
     padding: 8px 16px 16px;
   }
   .sheet-foot {
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Color picker on mobile bottom sheet */
   .cp-wrap {
     bottom: 0 !important;
     left: 0 !important;
@@ -1129,7 +1419,7 @@ textarea.inp {
     top: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
+    border-radius: 24px 24px 0 0 !important;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     animation: sheet-slide-up 0.2s ease-out;
   }
@@ -1150,7 +1440,7 @@ textarea.inp {
     </div>
     <div class="top-actions">
       <button class="btn icon" id="cats" title="Gestionează categoriile" aria-label="Categorii">🎨</button>
-      <button class="btn icon" id="settings" title="Sincronizare" aria-label="Sincronizare">⚙</button>
+      <button class="btn icon" id="settings" title="Sincronizare Cloud" aria-label="Sincronizare">⚙</button>
       <button class="btn primary" id="add">+ Eveniment</button>
     </div>
   </header>
@@ -1266,6 +1556,25 @@ function isoWeek(s) {
 const toMin = t => { const [a, b] = t.split(":").map(Number); return a * 60 + b; };
 const fmtDur = m => { const hh = Math.floor(m / 60), mm = m % 60; return hh ? (mm ? hh + "h " + pad(mm) : hh + "h") : mm + "min"; };
 const uid = () => "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function calcDurationText(start, end) {
+  if (!start || !end) return "";
+  const s = toMin(start), e = toMin(end);
+  const diff = e - s;
+  if (diff <= 0) return "Oră invalidă";
+  const hh = Math.floor(diff / 60), mm = diff % 60;
+  if (hh && mm) return `${hh}h ${mm}m`;
+  if (hh) return `${hh}h`;
+  return `${mm}m`;
+}
+
+function addMinutesToTime(timeStr, mins) {
+  const [h, m] = (timeStr || "09:00").split(":").map(Number);
+  const total = Math.min(23 * 60 + 59, h * 60 + m + mins);
+  const newH = Math.floor(total / 60);
+  const newM = total % 60;
+  return pad(newH) + ":" + pad(newM);
+}
 
 const DAYS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică"];
 const DAYS3 = ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"];
@@ -1607,7 +1916,7 @@ const DEFAULT_CATS = [
 ];
 
 function seed(id, title, cat, start, end) {
-  return { id, title, cat, start, end, note: "", rec: { days: [0], every: 1, from: "2026-09-28", until: null } };
+  return { id, title, cat, start, end, note: "", loc: "", rec: { days: [0], every: 1, from: "2026-09-28", until: null } };
 }
 
 function defaults() {
@@ -1628,12 +1937,12 @@ function defaults() {
 function normalize(o) {
   const d = (o && typeof o === "object") ? o : {};
   const cats = Array.isArray(d.cats) && d.cats.length ? d.cats : DEFAULT_CATS.map(c => ({ ...c }));
-  // Clean Romanian diacritics in all loaded categories
   cats.forEach(c => { c.name = cleanRomanianText(c.name); });
   const events = Array.isArray(d.events) ? d.events : [];
   events.forEach(e => {
     e.title = cleanRomanianText(e.title);
     if (e.note) e.note = cleanRomanianText(e.note);
+    if (e.loc) e.loc = cleanRomanianText(e.loc);
   });
   return {
     v: 1,
@@ -1684,6 +1993,7 @@ function mk(e, date) {
     start: m.start,
     end: m.end,
     note: m.note || "",
+    loc: m.loc || "",
     rec: !!e.rec,
     done: !!S.done[key],
     changed: !!o,
@@ -1838,7 +2148,7 @@ function monthView() {
         cell.append(h("button", {
           class: "chip" + (o.done ? " done" : ""),
           style: "--c:" + catOf(o.cat).color,
-          title: o.start + "–" + o.end + " " + o.title,
+          title: o.start + "–" + o.end + " " + o.title + (o.loc ? ` (${o.loc})` : ""),
           onclick: () => openEditor({ occ: o })
         }, h("span", { class: "t" }, o.start), o.title));
       });
@@ -1950,7 +2260,8 @@ function gridView(dates) {
         }
       }, o.done ? "✓" : ""),
       h("b", null, o.title),
-      height > 34 ? h("span", { class: "tm" }, o.start + " – " + o.end) : null);
+      height > 34 ? h("span", { class: "tm" }, o.start + " – " + o.end) : null,
+      (height > 52 && o.loc) ? h("span", { class: "loc-badge" }, "📍 " + o.loc) : null);
 
       dc.append(ev);
     });
@@ -2026,7 +2337,19 @@ function openModal(build) {
 }
 
 /* ==========================================================================
-   EVENT EDITOR
+   SMART CATEGORY SUGGESTIONS
+   ========================================================================== */
+const CATEGORY_SUGGESTIONS = {
+  sala: ["Antrenament", "Cardio", "Piept & Triceps", "Spate & Biceps", "Picioare", "Stretching"],
+  pizzerie: ["Tură de zi", "Tură de seară", "Livrări comenzi", "Pregătire aluat", "Inventar"],
+  tata: ["Lucru atelier", "Intervenție teren", "Ajutor birou", "Aprovizionare piese", "Revizie"],
+  facultate: ["Curs", "Seminar", "Laborator", "Examen", "Proiect echipă", "Studiu bibliotecă"],
+  personal: ["Cumpărături", "Programare medic", "Întâlnire prieteni", "Timp relaxare", "Plată facturi"],
+  altele: ["Task important", "Apel telefonic", "Urgență", "Planificare", "Curățenie"]
+};
+
+/* ==========================================================================
+   ULTRA-PROFESSIONAL EVENT TAB (MODAL)
    ========================================================================== */
 function purgeSeries(id, fromDate) {
   for (const map of [S.ov, S.done]) {
@@ -2065,6 +2388,7 @@ function openEditor(o) {
     cat: occ ? occ.cat : firstCat,
     start: occ ? occ.start : (o.start || "09:00"),
     end: occ ? occ.end : (o.end || "10:00"),
+    loc: occ ? occ.loc : "",
     note: occ ? occ.note : "",
     date,
     done: occ ? occ.done : false,
@@ -2081,117 +2405,199 @@ function openEditor(o) {
 
   openModal((box, close) => {
     function draw() {
-      const dt = parse(date);
-      const head = isNew ? "Eveniment nou" : "Modifică evenimentul";
+      const dt = parse(f.date);
+      const currCat = catOf(f.cat);
+      const catColor = currCat.color;
+      box.style.setProperty("--active-cat-color", catColor);
 
-      const headEl = h("div", { class: "sheet-head" },
-        h("h2", null, head),
-        isRec ? h("p", { class: "sub" }, DAYS[dow(date)] + ", " + dt.getDate() + " " + MONTHS[dt.getMonth()] + " — se repetă") : null
+      // 1. Accent color glow strip at top
+      const topStrip = h("div", { class: "sheet-top-strip" });
+
+      // 2. Header with Category icon, Title, Subtitle and Close button
+      const headEl = h("div", { class: "sheet-head-pro" },
+        h("div", { class: "sheet-head-info" },
+          h("h2", null,
+            h("span", { style: `color:${catColor}` }, isNew ? "✦" : "✎"),
+            isNew ? "Eveniment nou" : "Modifică evenimentul"
+          ),
+          h("p", { class: "sub" },
+            h("span", null, "📅"),
+            DAYS[dow(f.date)] + ", " + dt.getDate() + " " + MONTHS[dt.getMonth()] + " " + dt.getFullYear() +
+            (isRec ? " · 🔁 Se repetă" : "")
+          )
+        ),
+        h("button", { class: "sheet-close-btn", title: "Închide", onclick: close }, "✕")
       );
 
       const bodyKids = [];
 
-      if (isRec) {
-        bodyKids.push(h("div", { class: "fld" },
-          h("span", { class: "lab" }, "Se aplică"),
-          h("div", { class: "view-segment", style: "display:flex;width:100%" },
-            ...[["this", "Doar ziua asta"], ["following", "De aici încolo"], ["all", "Toată seria"]].map(([v, l]) =>
-              h("button", {
-                style: "flex:1",
-                "aria-pressed": String(scope === v),
-                onclick: () => { scope = v; f.err = ""; draw(); }
-              }, l)
-            )
+      // 3. Category selector pills (Horizontal scroll with "+ Categorie" shortcut)
+      const catChips = S.cats.map(c => h("button", {
+        class: "cat-chip-btn",
+        style: "--c:" + c.color,
+        "aria-pressed": String(f.cat === c.id),
+        onclick: () => { f.cat = c.id; draw(); }
+      }, h("span", { class: "dot-ind" }), c.name, f.cat === c.id ? h("span", null, "✓") : null));
+
+      catChips.push(h("button", {
+        class: "cat-chip-btn add-cat-quick",
+        onclick: () => { openCats(); }
+      }, "+ Categorie"));
+
+      bodyKids.push(h("div", { style: "margin-bottom:12px;" },
+        h("span", { class: "lab" }, "Categorie activitate"),
+        h("div", { class: "cat-picker-grid" }, ...catChips)
+      ));
+
+      // 4. Title Input + Smart Suggestions
+      const titleInp = h("input", {
+        class: "title-input-big",
+        type: "text",
+        placeholder: "Ce ai planificat? (ex: Antrenament piept, Curs mate...)",
+        value: f.title,
+        oninput: e => { f.title = e.target.value; }
+      });
+
+      const suggestions = CATEGORY_SUGGESTIONS[f.cat] || CATEGORY_SUGGESTIONS.altele;
+      const sugPills = suggestions.map(s => h("button", {
+        class: "sug-pill",
+        onclick: () => { f.title = s; draw(); }
+      }, s));
+
+      bodyKids.push(h("div", { class: "title-fld" },
+        h("label", { class: "lab", for: "f-title" }, "Titlu eveniment"),
+        titleInp,
+        h("div", { class: "suggestions-wrap" }, ...sugPills)
+      ));
+
+      // 5. Date & Time Engine Card
+      const durText = calcDurationText(f.start, f.end);
+      const timeCardKids = [
+        h("div", { class: "time-card-title" },
+          h("span", null, "⏰ Interval orar & Dată"),
+          h("span", { class: "duration-live-pill" }, `⏱️ Durată: ${durText}`)
+        ),
+        h("div", { class: "fld row", style: "margin-bottom:8px;" },
+          h("div", null,
+            h("label", { class: "lab", for: "f-date" }, "Data"),
+            h("input", {
+              id: "f-date",
+              class: "inp",
+              type: "date",
+              value: f.date,
+              disabled: isRec ? true : null,
+              oninput: e => { if (e.target.value) { f.date = e.target.value; draw(); } }
+            })
+          ),
+          h("div", null,
+            h("label", { class: "lab", for: "f-start" }, "De la ora"),
+            h("input", {
+              id: "f-start",
+              class: "inp",
+              type: "time",
+              step: "300",
+              value: f.start,
+              oninput: e => { f.start = e.target.value; draw(); }
+            })
+          ),
+          h("div", null,
+            h("label", { class: "lab", for: "f-end" }, "Până la ora"),
+            h("input", {
+              id: "f-end",
+              class: "inp",
+              type: "time",
+              step: "300",
+              value: f.end,
+              oninput: e => { f.end = e.target.value; draw(); }
+            })
           )
-        ));
-      }
-
-      bodyKids.push(h("div", { class: "fld" },
-        h("label", { for: "f-title" }, "Titlu"),
-        h("input", {
-          id: "f-title",
-          class: "inp",
-          type: "text",
-          placeholder: "Ce ai de făcut?",
-          value: f.title,
-          oninput: e => { f.title = e.target.value; }
-        })
-      ));
-
-      bodyKids.push(h("div", { class: "fld" },
-        h("span", { class: "lab" }, "Categorie"),
-        h("div", { class: "legend-scroll", style: "padding:0 0 4px;" },
-          ...S.cats.map(c => h("button", {
-            class: "lg",
-            style: "--c:" + c.color,
-            "aria-pressed": String(f.cat === c.id),
-            onclick: () => { f.cat = c.id; draw(); }
-          }, h("i"), c.name))
         )
-      ));
+      ];
 
       if (!isRec) {
-        bodyKids.push(h("div", { class: "fld" },
-          h("label", { for: "f-date" }, "Data"),
-          h("input", {
-            id: "f-date",
-            class: "inp",
-            type: "date",
-            value: f.date,
-            oninput: e => { if (e.target.value) f.date = e.target.value; }
-          })
+        timeCardKids.push(h("div", { class: "date-jump-row" },
+          h("button", { class: "date-jump-btn", onclick: () => { f.date = iso(new Date()); draw(); } }, "Azi"),
+          h("button", { class: "date-jump-btn", onclick: () => { f.date = addD(iso(new Date()), 1); draw(); } }, "Mâine"),
+          h("button", { class: "date-jump-btn", onclick: () => { f.date = addD(iso(new Date()), 7); draw(); } }, "+7 Zile")
         ));
       }
 
-      bodyKids.push(h("div", { class: "fld row" },
-        h("div", null,
-          h("label", { class: "lab", for: "f-start" }, "De la"),
-          h("input", {
-            id: "f-start",
-            class: "inp",
-            type: "time",
-            step: "300",
-            value: f.start,
-            oninput: e => { f.start = e.target.value; }
-          })
-        ),
-        h("div", null,
-          h("label", { class: "lab", for: "f-end" }, "Până la"),
-          h("input", {
-            id: "f-end",
-            class: "inp",
-            type: "time",
-            step: "300",
-            value: f.end,
-            oninput: e => { f.end = e.target.value; }
-          })
-        )
+      // Quick duration buttons
+      timeCardKids.push(h("div", { class: "quick-durations" },
+        h("span", { style: "font-size:11px;font-weight:700;color:var(--ink3);align-self:center;margin-right:4px;" }, "Setează:"),
+        ...[30, 45, 60, 90, 120, 180].map(mins => h("button", {
+          class: "quick-dur-btn",
+          onclick: () => {
+            f.end = addMinutesToTime(f.start, mins);
+            draw();
+          }
+        }, `+${mins >= 60 ? (mins / 60) + "h" : mins + "m"}`)),
+        h("button", {
+          class: "quick-dur-btn",
+          onclick: () => { f.start = "09:00"; f.end = "20:00"; draw(); }
+        }, "Toată ziua")
       ));
 
-      if (isNew) {
-        bodyKids.push(h("div", { class: "fld" },
-          h("label", { class: "chk-row" },
+      bodyKids.push(h("div", { class: "time-card" }, ...timeCardKids));
+
+      // 6. Recurrence Card (Se repetă regulat)
+      const recKids = [
+        h("div", { class: "rec-header-row", onclick: () => {
+          if (isNew) {
+            f.repeat = !f.repeat;
+            if (f.repeat) { f.days = [dow(f.date)]; f.from = f.date; }
+            draw();
+          }
+        } },
+          h("div", { class: "rec-switch-label" },
+            h("span", null, "🔁"),
+            "Eveniment recurent (Se repetă)"
+          ),
+          h("label", { class: "switch" },
             h("input", {
               type: "checkbox",
-              checked: f.repeat,
+              checked: isRec || (isNew && f.repeat),
+              disabled: isRec ? true : null,
               onchange: e => {
                 f.repeat = e.target.checked;
                 if (f.repeat) { f.days = [dow(f.date)]; f.from = f.date; }
                 draw();
               }
             }),
-            "Se repetă săptămânal"
+            h("span", { class: "slider" })
+          )
+        )
+      ];
+
+      if (isRec) {
+        recKids.push(h("div", { style: "margin-top:12px;" },
+          h("span", { class: "lab" }, "Unde aplici modificarea?"),
+          h("div", { class: "scope-cards" },
+            ...[
+              ["this", "📅", "Doar ziua asta", "Modifică doar data selectată"],
+              ["following", "⏩", "De aici încolo", "De la data asta spre viitor"],
+              ["all", "🔁", "Toată seria", "Toate aparițiile din calendar"]
+            ].map(([val, icon, lbl, desc]) => h("button", {
+              class: "scope-card-btn",
+              "aria-pressed": String(scope === val),
+              onclick: () => { scope = val; f.err = ""; draw(); }
+            },
+            h("span", { class: "sc-icon" }, icon),
+            h("span", { class: "sc-title" }, lbl),
+            h("span", { class: "sc-sub" }, desc)
+            ))
           )
         ));
       }
 
       if ((isNew && f.repeat) || (isRec && scope !== "this")) {
-        bodyKids.push(h("div", { class: "fld" },
-          h("span", { class: "lab" }, "În zilele"),
+        recKids.push(h("div", { style: "margin-top:14px;" },
+          h("span", { class: "lab" }, "Zilele săptămânii în care se repetă"),
           h("div", { class: "dpick-row" },
             ...DAYS1.map((l, i) => h("button", {
               class: "dpick",
               title: DAYS[i],
+              style: f.days.includes(i) ? `background:${catColor};border-color:${catColor};color:#fff;box-shadow:0 2px 6px ${catColor}44;` : "",
               "aria-pressed": String(f.days.includes(i)),
               onclick: () => {
                 f.days = f.days.includes(i) ? f.days.filter(x => x !== i) : [...f.days, i].sort();
@@ -2204,57 +2610,85 @@ function openEditor(o) {
         const sel = h("select", {
           class: "inp",
           id: "f-every",
+          style: "margin-top:8px;",
           onchange: e => { f.every = Number(e.target.value); }
-        }, ...[1, 2, 3, 4].map(n => h("option", { value: n }, n === 1 ? "În fiecare săptămână" : `La fiecare ${n} săptămâni`)));
+        },
+        ...[1, 2, 3, 4].map(n => h("option", { value: n }, n === 1 ? "În fiecare săptămână" : `La fiecare ${n} săptămâni`))
+        );
         sel.value = String(f.every);
-        bodyKids.push(h("div", { class: "fld" }, h("label", { class: "lab", for: "f-every" }, "Frecvență"), sel));
+        recKids.push(h("div", { style: "margin-top:10px;" },
+          h("label", { class: "lab", for: "f-every" }, "Frecvență repetare"),
+          sel
+        ));
 
         const fromLocked = isRec && scope === "following";
-        bodyKids.push(h("div", { class: "fld row" },
+        recKids.push(h("div", { class: "fld row", style: "margin-top:10px;margin-bottom:0;" },
           h("div", null,
-            h("label", { class: "lab", for: "f-from" }, "Începând cu"),
+            h("label", { class: "lab", for: "f-from" }, "Începând cu data"),
             h("input", {
               id: "f-from",
               class: "inp",
               type: "date",
-              value: fromLocked ? date : f.from,
+              value: fromLocked ? f.date : f.from,
               disabled: fromLocked ? true : null,
               oninput: e => { if (e.target.value) f.from = e.target.value; }
             })
           ),
           h("div", null,
-            h("label", { class: "lab", for: "f-until" }, "Până la (opțional)"),
+            h("label", { class: "lab", for: "f-until" }, "Până la data (opțional)"),
             h("input", {
               id: "f-until",
               class: "inp",
               type: "date",
               value: f.until,
+              placeholder: "Fără dată limită",
               oninput: e => { f.until = e.target.value; }
             })
           )
         ));
       }
 
-      bodyKids.push(h("div", { class: "fld" },
-        h("label", { class: "lab", for: "f-note" }, "Notițe"),
-        h("textarea", {
-          id: "f-note",
-          class: "inp",
-          placeholder: "Detalii, ce trebuie să iei cu tine…",
-          value: f.note,
-          oninput: e => { f.note = e.target.value; }
-        })
+      bodyKids.push(h("div", { class: "rec-box" }, ...recKids));
+
+      // 7. Extra Details Card (Location & Notes)
+      bodyKids.push(h("div", { class: "extra-card" },
+        h("div", null,
+          h("label", { class: "lab", for: "f-loc" }, "📍 Locație / Sală / Link"),
+          h("input", {
+            id: "f-loc",
+            class: "inp",
+            type: "text",
+            placeholder: "Ex: Sala 304, Campus Leu, sau link Zoom/Google Maps",
+            value: f.loc,
+            oninput: e => { f.loc = e.target.value; }
+          })
+        ),
+        h("div", null,
+          h("label", { class: "lab", for: "f-note" }, "📝 Notițe & Detalii"),
+          h("textarea", {
+            id: "f-note",
+            class: "inp",
+            placeholder: "Ce ai de pregătit, echipament, materiale sau detalii utile…",
+            value: f.note,
+            oninput: e => { f.note = e.target.value; }
+          })
+        )
       ));
 
+      // 8. Completion Status Card (if modifying)
       if (!isNew) {
-        bodyKids.push(h("div", { class: "fld" },
-          h("label", { class: "chk-row" },
+        bodyKids.push(h("div", { class: "status-card" },
+          h("div", { class: "status-card-label" },
+            h("span", { style: f.done ? "color:var(--success)" : "color:var(--ink3)" }, f.done ? "✓" : "○"),
+            `Marchează ca finalizat (${dt.getDate()} ${MS[dt.getMonth()]})`
+          ),
+          h("label", { class: "switch" },
             h("input", {
               type: "checkbox",
               checked: f.done,
-              onchange: e => { f.done = e.target.checked; }
+              onchange: e => { f.done = e.target.checked; draw(); }
             }),
-            `Făcut (pentru ${dt.getDate()} ${MS[dt.getMonth()]})`
+            h("span", { class: "slider", style: f.done ? "background-color:var(--success)" : "" })
           )
         ));
       }
@@ -2263,31 +2697,46 @@ function openEditor(o) {
         bodyKids.push(h("p", { class: "err-msg", role: "alert" }, "⚠ " + f.err));
       }
 
-      const bodyEl = h("div", { class: "sheet-body" }, ...bodyKids);
-
-      let footEl;
+      // Delete confirmation inline prompt
       if (f.deleting) {
-        footEl = h("div", { class: "sheet-foot", style: "flex-wrap:wrap" },
-          h("span", { class: "lab", style: "width:100%;margin:0;" }, isRec ? "Ce dorești să ștergi?" : "Sigur ștergi evenimentul?"),
-          ...(isRec ? [
-            h("button", { class: "btn danger", onclick: () => del("this") }, "Doar ziua asta"),
-            h("button", { class: "btn danger", onclick: () => del("following") }, "De aici încolo"),
-            h("button", { class: "btn danger", onclick: () => del("all") }, "Toată seria")
-          ] : [
-            h("button", { class: "btn danger", onclick: () => del("all") }, "Da, șterge")
-          ]),
-          h("button", { class: "btn", onclick: () => { f.deleting = false; draw(); } }, "Nu")
-        );
-      } else {
-        footEl = h("div", { class: "sheet-foot" },
-          !isNew ? h("button", { class: "btn danger", onclick: () => { f.deleting = true; draw(); } }, "Șterge") : null,
-          h("span", { style: "flex:1" }),
-          h("button", { class: "btn", onclick: close }, "Anulează"),
-          h("button", { class: "btn primary", onclick: save }, "Salvează")
-        );
+        bodyKids.push(h("div", { class: "del-confirm-box" },
+          h("p", null, isRec ? "Cum dorești să ștergi evenimentul recurent?" : "Sigur dorești să ștergi acest eveniment?"),
+          h("div", { class: "del-confirm-actions" },
+            ...(isRec ? [
+              h("button", { class: "btn danger", onclick: () => del("this") }, "Doar ziua asta"),
+              h("button", { class: "btn danger", onclick: () => del("following") }, "De aici încolo"),
+              h("button", { class: "btn danger", onclick: () => del("all") }, "Toată seria")
+            ] : [
+              h("button", { class: "btn danger", onclick: () => del("all") }, "Da, șterge definitiv")
+            ]),
+            h("button", { class: "btn", onclick: () => { f.deleting = false; draw(); } }, "Anulează")
+          )
+        ));
       }
 
-      box.replaceChildren(headEl, bodyEl, footEl);
+      const bodyEl = h("div", { class: "sheet-body" }, ...bodyKids);
+
+      // 9. Sticky Action Bar Footer
+      const footKids = [];
+      if (!isNew && !f.deleting) {
+        footKids.push(h("button", {
+          class: "btn danger",
+          title: "Șterge evenimentul",
+          onclick: () => { f.deleting = true; draw(); }
+        }, "🗑️ Șterge"));
+      }
+
+      footKids.push(h("span", { style: "flex:1" }));
+      footKids.push(h("button", { class: "btn", onclick: close }, "Anulează"));
+      footKids.push(h("button", {
+        class: "btn primary",
+        style: `background:${catColor};border-color:${catColor};box-shadow:0 3px 12px ${catColor}44;`,
+        onclick: save
+      }, "💾 Salvează"));
+
+      const footEl = h("div", { class: "sheet-foot" }, ...footKids);
+
+      box.replaceChildren(topStrip, headEl, bodyEl, footEl);
     }
 
     function del(sc) {
@@ -2297,9 +2746,9 @@ function openEditor(o) {
       } else if (sc === "this") {
         S.ov[occ.key] = { cancel: true };
         delete S.done[occ.key];
-      } else if (sc === "following" && date > base.rec.from) {
-        base.rec.until = addD(date, -1);
-        purgeSeries(base.id, date);
+      } else if (sc === "following" && f.date > base.rec.from) {
+        base.rec.until = addD(f.date, -1);
+        purgeSeries(base.id, f.date);
       } else {
         S.events = S.events.filter(e => e.id !== base.id);
         purgeSeries(base.id, "0000-00-00");
@@ -2321,13 +2770,20 @@ function openEditor(o) {
         draw();
         return;
       }
-      if (wantsRec && f.until && f.until < (isRec && scope === "following" ? date : f.from)) {
+      if (wantsRec && f.until && f.until < (isRec && scope === "following" ? f.date : f.from)) {
         f.err = "Data de final e înaintea datei de început.";
         draw();
         return;
       }
 
-      const fields = { title, cat: f.cat, start: f.start, end: f.end, note: f.note.trim() };
+      const fields = {
+        title,
+        cat: f.cat,
+        start: f.start,
+        end: f.end,
+        loc: f.loc ? f.loc.trim() : "",
+        note: f.note.trim()
+      };
       const recDef = { days: [...f.days], every: f.every, from: f.from, until: f.until || null };
       let key = null;
 
@@ -2356,15 +2812,15 @@ function openEditor(o) {
         base.rec = recDef;
         key = occ.key;
       } else {
-        if (date <= base.rec.from) {
+        if (f.date <= base.rec.from) {
           Object.assign(base, fields);
           base.rec = recDef;
           key = occ.key;
         } else {
-          const ne = splitSeries(base, date);
+          const ne = splitSeries(base, f.date);
           Object.assign(ne, fields);
-          ne.rec = { ...recDef, from: date };
-          key = ne.id + "@" + date;
+          ne.rec = { ...recDef, from: f.date };
+          key = ne.id + "@" + f.date;
         }
       }
 
@@ -2377,7 +2833,7 @@ function openEditor(o) {
     }
 
     draw();
-    const t = $("#f-title", box);
+    const t = $(".title-input-big", box);
     if (t && isNew && !isSmall()) t.focus();
   });
 }
@@ -2391,9 +2847,12 @@ function openCats() {
 
   openModal((box, close) => {
     function draw() {
-      const headEl = h("div", { class: "sheet-head" },
-        h("h2", null, "🎨 Categorii"),
-        h("p", { class: "sub" }, "Personalizează categoriile și culorile. Atinge pătratul de culoare pentru a o modifica.")
+      const headEl = h("div", { class: "sheet-head-pro" },
+        h("div", { class: "sheet-head-info" },
+          h("h2", null, "🎨 Categorii"),
+          h("p", { class: "sub" }, "Personalizează categoriile și culorile orarului tău.")
+        ),
+        h("button", { class: "sheet-close-btn", title: "Închide", onclick: close }, "✕")
       );
 
       const list = h("div", { class: "cat-list" });
@@ -2495,9 +2954,12 @@ function openSettings() {
     let tokVal = ghToken;
     function draw() {
       const connected = !!ghToken;
-      const headEl = h("div", { class: "sheet-head" },
-        h("h2", null, "⚙ Sincronizare Cloud"),
-        h("p", { class: "sub" }, "Sincronizează automat orarul între PC și telefon prin GitHub.")
+      const headEl = h("div", { class: "sheet-head-pro" },
+        h("div", { class: "sheet-head-info" },
+          h("h2", null, "⚙ Sincronizare Cloud"),
+          h("p", { class: "sub" }, "Sincronizează automat orarul între PC și telefon prin GitHub.")
+        ),
+        h("button", { class: "sheet-close-btn", title: "Închide", onclick: close }, "✕")
       );
 
       const bodyEl = h("div", { class: "sheet-body" },
