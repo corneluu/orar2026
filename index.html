@@ -431,10 +431,12 @@ h1 {
   -webkit-overflow-scrolling: touch;
   padding: 2px 2px 10px;
   margin-bottom: 6px;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 }
-.legend-scroll::-webkit-scrollbar {
-  display: none;
+@media (min-width: 641px) {
+  .legend-scroll {
+    flex-wrap: wrap;
+  }
 }
 .lg {
   --c: #888;
@@ -884,15 +886,10 @@ h1 {
 /* Category Cards Selector */
 .cat-picker-grid {
   display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 3px 2px 8px;
   margin-bottom: 12px;
-  scrollbar-width: none;
-}
-.cat-picker-grid::-webkit-scrollbar {
-  display: none;
 }
 .cat-chip-btn {
   --c: #888;
@@ -907,7 +904,6 @@ h1 {
   font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
-  flex-shrink: 0;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cat-chip-btn:active {
@@ -954,15 +950,10 @@ h1 {
 }
 .suggestions-wrap {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 6px;
   padding: 6px 2px 2px;
-  scrollbar-width: none;
-}
-.suggestions-wrap::-webkit-scrollbar {
-  display: none;
 }
 .sug-pill {
   font-size: 12px;
