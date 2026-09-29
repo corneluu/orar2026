@@ -90,6 +90,7 @@ function mkOcc(e, date) {
     end: m.end || '00:00',
     note: m.note || '',
     loc: m.loc || '',
+    reminder: m.reminder || null,
     done: !!(S.done && S.done[key]),
     s: toMin(m.start),
     e: toMin(m.end)
@@ -229,36 +230,51 @@ async function run() {
     return;
   }
 
-  // Check upcoming events against configured timings
+  // Check upcoming events using per-event reminder settings
   for (const occ of todayOccs) {
     if (occ.done) continue;
+
+    // Get the base event to read its reminder config
+    const baseEv = (S.events || []).find(e => e.id === occ.id);
+    // Check if override has reminder config too
+    const ovData = S.ov ? S.ov[occ.key] : null;
+    const remConfig = (ovData && ovData.reminder) || (baseEv && baseEv.reminder) || null;
+
+    // Per-event reminder enabled? Default true if no config exists (backwards compat)
+    const remEnabled = remConfig ? remConfig.enabled !== false : true;
+    if (!remEnabled) {
+      console.log(`Reminder disabled for event: ${occ.title}`);
+      continue;
+    }
+
+    // Per-event custom offset in minutes (default 30 if not set)
+    const remMins = (remConfig && remConfig.mins && remConfig.mins > 0) ? remConfig.mins : 30;
+
     const diff = occ.s - now.minsNow;
-    
-    // For each configured reminder offset (e.g., 15 min, 30 min, 60 min)
-    for (const offset of reminderOffsets) {
-      // Allow window around target offset (e.g., if offset=15, trigger when diff between 8 and 20)
-      const windowMin = Math.max(1, offset - 7);
-      const windowMax = offset + 7;
 
-      if (diff >= windowMin && diff <= windowMax) {
-        const reminderId = `${occ.key}_offset${offset}_${now.dateStr}`;
-        if (sentLog[reminderId]) {
-          continue;
-        }
+    // Trigger window: ±7 minutes around target offset
+    const windowMin = Math.max(1, remMins - 7);
+    const windowMax = remMins + 7;
 
-        const cat = catOf(occ.cat);
-        console.log(`🔔 Sending ${offset}m reminder for: ${occ.title} at ${occ.start} (in ~${diff} min)`);
+    if (diff >= windowMin && diff <= windowMax) {
+      const reminderId = `${occ.key}_remind_${now.dateStr}`;
+      if (sentLog[reminderId]) {
+        console.log(`Reminder already sent for: ${occ.title} (${occ.start})`);
+        continue;
+      }
 
-        // Telegram Message (HTML formatted)
-        const tgMsg = `⏰ <b>REMINDER: ${escapeHtml(occ.title)}</b>\n\n` +
-          `📁 <b>Categorie:</b> ${escapeHtml(cat.name)}\n` +
-          `🕒 <b>Ora:</b> ${escapeHtml(occ.start)} – ${escapeHtml(occ.end)} <i>(în ~${diff} minute)</i>\n` +
-          (occ.loc ? `📍 <b>Locație:</b> ${escapeHtml(occ.loc)}\n` : '') +
-          (occ.note ? `📝 <b>Notițe:</b> ${escapeHtml(occ.note)}\n` : '') +
-          `\n🔗 <a href="https://corneluu.github.io/orar2026/">Deschide orarul</a>`;
 
-        // Email HTML
-        const emailHtml = `
+      const cat = catOf(occ.cat);
+      console.log(`🔔 Sending reminder for: ${occ.title} at ${occ.start} (in ~${diff} min, offset: ${remMins}min)`);
+
+      const tgMsg = `⏰ <b>REMINDER: ${escapeHtml(occ.title)}</b>\n\n` +
+        `📁 <b>Categorie:</b> ${escapeHtml(cat.name)}\n` +
+        `🕒 <b>Ora:</b> ${escapeHtml(occ.start)} – ${escapeHtml(occ.end)} <i>(în ~${diff} minute)</i>\n` +
+        (occ.loc ? `📍 <b>Locație:</b> ${escapeHtml(occ.loc)}\n` : '') +
+        (occ.note ? `📝 <b>Notițe:</b> ${escapeHtml(occ.note)}\n` : '') +
+        `\n🔗 <a href="https://corneluu.github.io/orar2026/">Deschide orarul</a>`;
+
+      const emailHtml = `
           <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:540px;margin:0 auto;padding:24px;border:1px solid #E2E8F0;border-radius:16px;background:#ffffff;">
             <div style="height:6px;width:100%;background:${cat.color};border-radius:3px;margin-bottom:18px;"></div>
             <h2 style="margin:0 0 10px;color:#0F172A;font-size:22px;">⏰ Reminder: ${escapeHtml(occ.title)}</h2>
@@ -273,12 +289,11 @@ async function run() {
           </div>
         `;
 
-        await sendTelegram(tgMsg);
-        await sendEmail(`⏰ Reminder: ${occ.title} la ${occ.start}`, emailHtml);
+      await sendTelegram(tgMsg);
+      await sendEmail(`⏰ Reminder: ${occ.title} la ${occ.start}`, emailHtml);
 
-        sentLog[reminderId] = Date.now();
-        anySent = true;
-      }
+      sentLog[reminderId] = Date.now();
+      anySent = true;
     }
   }
 
