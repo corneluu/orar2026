@@ -482,6 +482,44 @@ h1 {
 }
 
 /* ==========================================================================
+   MAIN VIEW CONTAINER & TRANSITIONS
+   ========================================================================== */
+#main {
+  overflow-x: clip;
+}
+.slide-from-right {
+  animation: viewSlideRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-from-left {
+  animation: viewSlideLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes viewSlideRight {
+  from {
+    opacity: 0.55;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes viewSlideLeft {
+  from {
+    opacity: 0.55;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide-from-right, .slide-from-left {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
    MONTH VIEW
    ========================================================================== */
 .month {
@@ -2304,7 +2342,7 @@ function titleText() {
   return DAYS[dow(c)] + ", " + d.getDate() + " " + MONTHS[d.getMonth()];
 }
 
-function nav(dir) {
+function nav(dir, animated = true) {
   const d = parse(ui.cursor);
   if (ui.view === "month") {
     d.setDate(1);
@@ -2314,6 +2352,15 @@ function nav(dir) {
     ui.cursor = addD(ui.cursor, dir * (ui.view === "week" ? 7 : 1));
   }
   render();
+  if (animated) {
+    const m = $("#main");
+    if (m) {
+      const cls = dir > 0 ? "slide-from-right" : "slide-from-left";
+      m.classList.remove("slide-from-right", "slide-from-left");
+      void m.offsetWidth; // Force CSS reflow to replay animation
+      m.classList.add(cls);
+    }
+  }
 }
 
 function renderHead() {
@@ -3688,6 +3735,95 @@ $("#add").onclick = () => openEditor({ date: ui.view === "month" ? iso(new Date(
 $("#cats").onclick = openCats;
 $("#notifs").onclick = openNotifs;
 $("#settings").onclick = openSettings;
+
+/* ==========================================================================
+   MOBILE SWIPE GESTURES (LEFT / RIGHT TO NAVIGATE MONTH / WEEK / DAY)
+   ========================================================================== */
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+let touchStartScrollLeft = 0;
+let isTouchActive = false;
+
+window.addEventListener("touchstart", e => {
+  // Only handle single-finger touch
+  if (!e.touches || e.touches.length !== 1) {
+    isTouchActive = false;
+    return;
+  }
+  // Ignore if modal dialog, color picker, or prompt is open
+  if (document.querySelector(".ov") || activePicker) {
+    isTouchActive = false;
+    return;
+  }
+
+  const target = e.target;
+  // Ignore if tapping on buttons, form controls or interactive chips
+  if (target.closest("button, input, textarea, select, .slider, .toggle-wrap, .color-btn, .more-pill, .sheet-close-btn")) {
+    isTouchActive = false;
+    return;
+  }
+
+  // Ensure touch is inside calendar view or header/controls area
+  const inMain = target.closest("#main");
+  const inNav = target.closest(".controls-bar, .top-header, #totals");
+  if (!inMain && !inNav) {
+    isTouchActive = false;
+    return;
+  }
+
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchStartTime = Date.now();
+
+  const gw = document.querySelector(".gw");
+  touchStartScrollLeft = gw ? gw.scrollLeft : 0;
+  isTouchActive = true;
+}, { passive: true });
+
+window.addEventListener("touchend", e => {
+  if (!isTouchActive) return;
+  isTouchActive = false;
+
+  if (!e.changedTouches || e.changedTouches.length === 0) return;
+  if (document.querySelector(".ov") || activePicker) return;
+
+  const touch = e.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  const elapsed = Date.now() - touchStartTime;
+
+  // Swipe gesture validation
+  if (elapsed > 650) return; // took too long (slow scroll/drag)
+  if (Math.abs(deltaX) < 42) return; // distance too short
+  if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.3) return; // predominantly vertical movement
+
+  const target = e.target;
+  const inNav = target.closest(".controls-bar, .top-header, #totals, .corner, .dh");
+  const gw = document.querySelector(".gw");
+
+  // In week view, if grid has horizontal overflow, only change week at the edges
+  if (!inNav && gw && ui.view === "week" && gw.scrollWidth > gw.clientWidth + 20) {
+    if (deltaX < 0) {
+      // Swiping left -> next week, requires starting near right edge
+      const atRight = touchStartScrollLeft + gw.clientWidth >= gw.scrollWidth - 32;
+      if (!atRight) return;
+    } else {
+      // Swiping right -> prev week, requires starting near left edge
+      const atLeft = touchStartScrollLeft <= 32;
+      if (!atLeft) return;
+    }
+  }
+
+  // Swipe Left (deltaX < 0) -> Next month/week/day
+  // Swipe Right (deltaX > 0) -> Previous month/week/day
+  if (deltaX < 0) {
+    nav(1);
+  } else {
+    nav(-1);
+  }
+}, { passive: true });
 
 let resizeTimer = null;
 window.addEventListener("resize", () => {
