@@ -78,7 +78,11 @@ var LINE = "━━━━━━━━━━━━━━━━";
 
 function dayLabel_(date) { var p = date.split("-").map(Number); return ZILE[remDow_(date)] + ", " + p[2] + " " + LUNI[p[1] - 1]; }
 function addDays_(date, n) { var p = date.split("-").map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)).toISOString().slice(0, 10); }
-function fmtDur_(m) { m = Math.max(0, Math.round(m)); if (m < 60) return m + " min"; var h = Math.floor(m / 60), r = m % 60; return h + " h" + (r ? " " + r + " min" : ""); }
+function fmtDur_(m) {
+  m = Math.max(0, Math.round(m));
+  if (m >= 1440) { var d = Math.floor(m / 1440), rest = m % 1440; return (d === 1 ? "1 zi" : d + " zile") + (rest ? " " + fmtDur_(rest) : ""); }
+  if (m < 60) return m + " min"; var h = Math.floor(m / 60), r = m % 60; return h + " h" + (r ? " " + r + " min" : "");
+}
 function fmtMin_(m) { return ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2); }
 function len_(o) { var d = o.e - o.s; return d > 0 ? d : 0; }
 
@@ -392,14 +396,18 @@ function processUpdates_(S, cfg, date, minsNow) {
 function urgency_(diff) {
   if (diff <= 15) return { bg: "#DC2626", tag: "🚨🚨🚨", head: "ÎNCEPE ACUM", push: "⚡ LASĂ TOT ȘI PLEACĂ!" };
   if (diff <= 60) return { bg: "#EA580C", tag: "🔴🔴", head: "FOARTE CURÂND", push: "⏳ Pregătește-te de plecare!" };
+  if (diff >= 720) return { bg: "#2563EB", tag: "📅", head: "NU UITA", push: "🗓 Pregătește din timp ce ai nevoie." };
   return { bg: "#D97706", tag: "🟠", head: "URMEAZĂ", push: "📌 Nu uita, ține-ți timpul liber." };
 }
 
 function sendReminder_(S, cfg, o, diff) {
   var cat = catOf_(S, o.cat), u = urgency_(diff), place = placeLink_(o.loc);
-  var plan = planFor_(o, o.key.split("@")[1]);
+  var date = o.key.split("@")[1], far = diff >= 720; // early reminders skip routes; the brief and "Pleacă acum!" cover the day itself
+  var when = date !== Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd") ? dayLabel_(date) + ", " : "";
+  var plan = far ? null : planFor_(o, date);
   var tg = u.tag + " <b>" + u.head + " — ÎN " + fmtDur_(diff).toUpperCase() + "!</b> " + u.tag + "\n" + LINE + "\n" +
     "<b>" + esc_(o.title.toUpperCase()) + "</b>\n" + LINE + "\n\n" +
+    (when ? "📆 <b>" + esc_(when.slice(0, -2)) + "</b>\n" : "") +
     "⏰ <b>" + esc_(o.start) + " → " + esc_(o.end) + "</b>" + (len_(o) ? "  <i>(" + fmtDur_(len_(o)) + ")</i>" : "") + "\n" +
     (o.loc ? "📍 <b>" + esc_(o.loc) + "</b>\n" : "") +
     square_(cat.color) + " " + esc_(cat.name) + "\n" +
@@ -407,12 +415,12 @@ function sendReminder_(S, cfg, o, diff) {
     "\n<b>" + u.push + "</b>" + (plan ? "\n\n" + tgRoutes_(plan) : "");
   var buttons = plan ? routeButtons_(plan) : place ? [[{ text: place.text, url: place.url }]] : [];
   buttons.push([{ text: "📅 Deschide orarul", url: APP_URL }]);
-  sendTelegram_(cfg, tg, { buttons: buttons, effect: FX.fire });
+  sendTelegram_(cfg, tg, { buttons: buttons, effect: far ? null : FX.fire });
   if (plan && plan.from.home) askLocation_(cfg);
 
   var head = '<div style="font-size:13px;font-weight:800;letter-spacing:3px;opacity:.9;">' + u.tag + ' ' + u.head + '</div>' +
-    '<div style="font-size:60px;line-height:1;font-weight:900;margin:10px 0 4px;letter-spacing:-1px;">ÎN ' + esc_(fmtDur_(diff).toUpperCase()) + '</div>' +
-    '<div style="font-size:16px;font-weight:700;opacity:.95;">începe la ' + esc_(o.start) + '</div>';
+    '<div style="font-size:' + (far ? 44 : 60) + 'px;line-height:1;font-weight:900;margin:10px 0 4px;letter-spacing:-1px;">ÎN ' + esc_(fmtDur_(diff).toUpperCase()) + '</div>' +
+    '<div style="font-size:16px;font-weight:700;opacity:.95;">începe ' + (when ? esc_(when.toLowerCase()) : '') + 'la ' + esc_(o.start) + '</div>';
   var body = '<div style="height:8px;background:' + color_(cat.color) + ';border-radius:4px;margin-bottom:16px;"></div>' +
     '<div style="font-size:30px;line-height:1.15;font-weight:900;color:#0B0F14;">' + esc_(o.title) + '</div>' +
     '<div style="font-size:24px;font-weight:800;color:#0B0F14;margin:10px 0 4px;">' + esc_(o.start) + ' → ' + esc_(o.end) +
@@ -524,7 +532,7 @@ function sendEvening_(S, cfg, date, minsNow) {
 
 /* ---------- scheduler (time trigger, every 5 min) ---------- */
 
-var MORNING_AT = 8 * 60, EVENING_AT = 21 * 60 + 30;
+var MORNING_AT = 8 * 60, EVENING_AT = 21 * 60 + 30, MAX_LEAD_DAYS = 7;
 
 function checkReminders() {
   var S = loadState_();
@@ -535,26 +543,30 @@ function checkReminders() {
 
   var props = PropertiesService.getScriptProperties();
   var sent = JSON.parse(props.getProperty("sentLog") || "{}");
-  var cutoff = Date.now() - 3 * 864e5;
+  var cutoff = Date.now() - 9 * 864e5; // longer than the 7-day max lead, so a sent reminder is never re-sent
   Object.keys(sent).forEach(function (k) { if (sent[k] < cutoff) delete sent[k]; });
 
   processUpdates_(S, cfg, date, minsNow); // a location you sent the bot
 
-  occurrencesOn_(S, date).forEach(function (o) {
-    if (o.done || (o.reminder && o.reminder.enabled === false)) return;
-    var remMins = (o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30;
-    var diff = o.s - minsNow;
-    // Fire once anywhere inside the lead window, so a late or skipped trigger run still sends.
-    if (diff > 0 && diff <= remMins && !sent[o.key]) { sendReminder_(S, cfg, o, diff); sent[o.key] = Date.now(); }
+  // Reminders can be set up to 7 days ahead, so look at today and the next 7 days.
+  for (var day = 0; day <= MAX_LEAD_DAYS; day++) {
+    var d = addDays_(date, day);
+    occurrencesOn_(S, d).forEach(function (o) {
+      if (o.done || (o.reminder && o.reminder.enabled === false)) return;
+      var remMins = (o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30;
+      var diff = day * 1440 + o.s - minsNow;
+      // Fire once anywhere inside the lead window, so a late or skipped trigger run still sends.
+      if (diff > 0 && diff <= remMins && !sent[o.key]) { sendReminder_(S, cfg, o, diff); sent[o.key] = Date.now(); }
 
-    // "Pleacă acum!": around the departure time of the route that still gets you there in time.
-    var lk = "leave_" + o.key;
-    if (sent[lk] || !isAddress_(o.loc) || diff <= 0 || diff > PLAN_WINDOW) return;
-    var plan = planFor_(o, date), lv = plan && leaveMin_(plan);
-    if (lv == null || minsNow < lv - 5 || minsNow > lv + 10) return;
-    sendTrip_(S, cfg, o, plan, "leave");
-    sent[lk] = Date.now();
-  });
+      // "Pleacă acum!": around the departure time of the route that still gets you there in time (today only).
+      var lk = "leave_" + o.key;
+      if (day || sent[lk] || !isAddress_(o.loc) || diff <= 0 || diff > PLAN_WINDOW) return;
+      var plan = planFor_(o, d), lv = plan && leaveMin_(plan);
+      if (lv == null || minsNow < lv - 5 || minsNow > lv + 10) return;
+      sendTrip_(S, cfg, o, plan, "leave");
+      sent[lk] = Date.now();
+    });
+  }
 
   // Each summary fires once, at the first run within the hour after its time.
   var mk = "morning_" + date, ek = "evening_" + date;

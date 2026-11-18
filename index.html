@@ -1697,8 +1697,10 @@ const shortDate = d => { const x = parse(d); return x.getDate() + " " + MS[x.get
 const fmtLeft = m => m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + (m % 60) + " min" : "");
 // Backend (Code.gs) treats a missing reminder as ON, 30 min, so the UI shows it the same way.
 const remOf = o => (o.reminder && o.reminder.enabled === false) ? 0 : ((o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30);
-const remShort = m => m < 60 ? m + "m" : (m % 60 ? Math.floor(m / 60) + "h" + pad(m % 60) : (m / 60) + "h");
-const remLong = m => m < 60 ? m + " min" : m === 60 ? "1 oră" : m % 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : (m / 60) + " ore";
+const REM_MAX = 7 * 1440; // Code.gs looks 7 days ahead
+const remShort = m => m >= 1440 && m % 1440 === 0 ? (m / 1440) + "z" : m < 60 ? m + "m" : (m % 60 ? Math.floor(m / 60) + "h" + pad(m % 60) : (m / 60) + "h");
+const remLong = m => m >= 1440 && m % 1440 === 0 ? (m === 1440 ? "o zi" : (m / 1440) + " zile")
+  : m < 60 ? m + " min" : m === 60 ? "1 oră" : m % 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : (m / 60) + " ore";
 
 function locLink(loc) {
   const s = (loc || "").trim();
@@ -2732,7 +2734,19 @@ function openEditor(o) {
       kids.push(h("div", { class: "grp" }, ...rep));
 
       // 4. Location, notes, reminder
-      const presets = [5, 10, 15, 30, 60, 120];
+      const presets = [15, 30, 60, 120, 1440, 2880];
+      // Custom lead: a number plus a unit (min / ore / zile), up to 7 days.
+      const unit = f.remindMins % 1440 === 0 ? 1440 : f.remindMins % 60 === 0 ? 60 : 1;
+      const numIn = h("input", { class: "inp", type: "number", min: "1", step: "any", inputmode: "decimal", style: "width:92px;min-height:44px",
+        "aria-label": "Cât de devreme (personalizat)", value: String(f.remindMins / unit) });
+      const unitSel = h("select", { class: "inp", style: "width:auto;min-height:44px", "aria-label": "Unitate" },
+        ...[[1, "minute"], [60, "ore"], [1440, "zile"]].map(([v, t]) => h("option", { value: String(v), selected: v === unit }, t)));
+      const applyCustom = () => {
+        const m = Math.round(parseFloat(numIn.value) * Number(unitSel.value));
+        if (m > 0 && m <= REM_MAX) { f.remindMins = m; draw(); }
+      };
+      numIn.addEventListener("change", applyCustom);
+      unitSel.addEventListener("change", applyCustom);
       kids.push(h("div", { class: "grp" },
         h("div", { class: "fld" }, h("label", { class: "lab", for: "f-loc" }, "Locație sau link"),
           h("input", { id: "f-loc", class: "inp", type: "text", placeholder: "Sala 304, adresă sau link Meet / Zoom", value: f.loc, oninput: e => { f.loc = e.target.value; } })),
@@ -2743,12 +2757,9 @@ function openEditor(o) {
             h("span", null, h("b", null, "Reminder"), h("small", null, f.remindEnabled ? `Cu ${remLong(f.remindMins)} înainte, pe Telegram și email` : "Dezactivat")),
             sw(f.remindEnabled, v => { f.remindEnabled = v; draw(); }, "Reminder")),
           f.remindEnabled ? h("div", { class: "chips", style: "margin-top:4px" },
-            ...presets.map(m => h("button", { class: "chip-btn", "aria-pressed": String(f.remindMins === m), onclick: () => { f.remindMins = m; draw(); } }, remLong(m))),
-            h("input", {
-              class: "inp", type: "number", min: "1", max: "1440", inputmode: "numeric", style: "width:110px;min-height:44px",
-              "aria-label": "Minute înainte (personalizat)", value: presets.includes(f.remindMins) ? "" : String(f.remindMins), placeholder: "Alt nr. min",
-              onchange: e => { const v = parseInt(e.target.value, 10); if (!isNaN(v) && v > 0 && v <= 1440) { f.remindMins = v; draw(); } }
-            })) : null)));
+            ...presets.map(m => h("button", { class: "chip-btn", "aria-pressed": String(f.remindMins === m), onclick: () => { f.remindMins = m; draw(); } }, remLong(m)))) : null,
+          f.remindEnabled ? h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px" },
+            h("span", { class: "lab", style: "margin:0" }, "Sau:"), numIn, unitSel, h("span", { class: "lab", style: "margin:0" }, "înainte (max 7 zile)")) : null)));
 
       // 5. Done state
       if (!isNew) {
