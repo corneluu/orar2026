@@ -8,6 +8,10 @@
  *   TELEGRAM_BOT_TOKEN  from @BotFather
  *   TELEGRAM_CHAT_ID    your chat id
  *   NOTIFICATION_EMAIL  one or more addresses, comma-separated
+ *   HOME_ADDRESS        start point for routes when you haven't sent a location (e.g. your village/street)
+ *
+ * Routes come from Apps Script's built-in Maps service (Google Maps, no API key).
+ * Send your location to the bot on Telegram and routes start from there for 3 h.
  *
  * Setup: set the properties → run `installReminderTrigger` → run `testNotify` (previews all 3 message types).
  * Sends: event reminders, morning brief at 08:00, evening report at 21:30 (Bucharest).
@@ -108,7 +112,8 @@ function sendTelegram_(cfg, html, opt) {
     return;
   }
   var body = { chat_id: cfg.chatId, text: html, parse_mode: "HTML", link_preview_options: { is_disabled: true } };
-  if (opt.buttons) body.reply_markup = { inline_keyboard: opt.buttons };
+  if (opt.keyboard) body.reply_markup = opt.keyboard;
+  else if (opt.buttons) body.reply_markup = { inline_keyboard: opt.buttons };
   if (opt.effect) body.message_effect_id = opt.effect;
   var post = function (b) {
     return UrlFetchApp.fetch("https://api.telegram.org/bot" + cfg.token + "/sendMessage",
@@ -174,12 +179,183 @@ function emailButton_(text, url, dark) {
     (dark ? 'background:#0B0F14;color:#FFFFFF;' : 'background:#FFFFFF;color:#0B0F14;border:2px solid #0B0F14;') + '">' + esc_(text) + '</a>';
 }
 
-function emailRow_(S, o, status) {
+function emailRow_(S, o, status, extra) {
   var cat = catOf_(S, o.cat);
   return '<div style="margin:0 0 8px;padding:12px 14px;border-left:6px solid ' + color_(cat.color) + ';background:#F6F8FA;border-radius:10px;">' +
     '<div style="font-size:16px;font-weight:800;color:#0B0F14;' + (o.cancelled ? 'text-decoration:line-through;' : '') + '">' + (status ? status + " " : "") + esc_(o.title) + '</div>' +
     '<div style="font-size:14px;color:#475569;margin-top:2px;"><b style="color:#0B0F14;">' + esc_(o.start) + '–' + esc_(o.end) + '</b> · ' + esc_(cat.name) +
-    (o.loc ? ' · ' + locLabel_(o.loc) : '') + '</div></div>';
+    (o.loc ? ' · ' + locLabel_(o.loc) : '') + '</div>' +
+    (extra ? '<div style="font-size:14px;font-weight:700;color:#0B0F14;margin-top:6px;">' + extra + '</div>' : '') + '</div>';
+}
+
+/* ---------- routes: Google Maps through Apps Script's Maps service (no API key) ---------- */
+
+var ARRIVE_EARLY = 10;   // plan to arrive this many minutes before the start
+var LOC_FRESH = 180;     // a location sent on Telegram counts for 3 h, then home again
+var PLAN_WINDOW = 180;   // "Pleacă acum!" is planned for events starting within 3 h
+var MODE_ICON = { BUS: "🚌", INTERCITY_BUS: "🚌", TROLLEYBUS: "🚎", TRAM: "🚋", HEAVY_RAIL: "🚆", RAIL: "🚆", COMMUTER_TRAIN: "🚆",
+  HIGH_SPEED_TRAIN: "🚆", LONG_DISTANCE_TRAIN: "🚆", SUBWAY: "🚇", METRO_RAIL: "🚇", SHARE_TAXI: "🚐" };
+
+function isAddress_(loc) { return !!loc && !/^https?:\/\//i.test(loc.trim()); }
+function hhmm_(sec) { return Utilities.formatDate(new Date(sec * 1000), TZ, "HH:mm"); }
+function atTime_(date, mins) { return Utilities.parseDate(date + " " + fmtMin_(mins), TZ, "yyyy-MM-dd HH:mm"); }
+
+// Start point: a location you sent on Telegram in the last 3 h, else HOME_ADDRESS.
+function origin_() {
+  var p = PropertiesService.getScriptProperties(), raw = p.getProperty("lastLocation");
+  if (raw) {
+    var l = JSON.parse(raw);
+    if (Date.now() - l.ts < LOC_FRESH * 60000) return { q: l.lat + "," + l.lng, label: "de unde erai la " + l.time, home: false };
+  }
+  var h = p.getProperty("HOME_ADDRESS");
+  return h ? { q: h, label: "de acasă", home: true } : null;
+}
+
+function mapsLink_(from, to, mode) {
+  return "https://www.google.com/maps/dir/?api=1" + (from ? "&origin=" + encodeURIComponent(from) : "") +
+    "&destination=" + encodeURIComponent(to) + "&travelmode=" + mode;
+}
+
+function directions_(from, to, mode, arriveBy) {
+  try {
+    var f = Maps.newDirectionFinder().setOrigin(from).setDestination(to).setLanguage("ro").setRegion("ro").setMode(mode);
+    if (mode === Maps.DirectionFinder.Mode.TRANSIT) {
+      f.setAlternatives(true);
+      if (arriveBy > new Date()) f.setArrive(arriveBy); else f.setDepart(new Date());
+    } else f.setDepart(new Date());
+    var r = f.getDirections();
+    if (r.status !== "OK") console.log("Directions " + mode + " → " + r.status);
+    return r.status === "OK" ? r.routes : [];
+  } catch (err) { console.error("Directions error: " + err.message); return []; }
+}
+
+// Transit options that arrive in time (latest departure first) + the car, cached 10 min per event and start point.
+function planFor_(o, date) {
+  if (!isAddress_(o.loc)) return null;
+  var from = origin_(); if (!from) return null;
+  var cache = CacheService.getScriptCache(), ck = ("plan_" + o.key + "_" + from.q).slice(0, 240);
+  var hit = cache.get(ck); if (hit) return JSON.parse(hit);
+
+  var arriveMin = o.s - ARRIVE_EARLY;
+  var transit = directions_(from.q, o.loc, Maps.DirectionFinder.Mode.TRANSIT, atTime_(date, arriveMin)).map(function (r) {
+    var leg = r.legs[0];
+    if (!leg.departure_time || !leg.arrival_time) return null; // walking-only answer
+    if (leg.departure_time.value * 1000 < Date.now() - 10 * 60000) return null; // already left
+    var steps = leg.steps.map(function (s) {
+      if (s.travel_mode !== "TRANSIT") return { icon: "🚶", min: Math.max(1, Math.round(s.duration.value / 60)) };
+      var t = s.transit_details, v = t.line.vehicle || {};
+      return { icon: MODE_ICON[v.type] || "🚌", line: t.line.short_name || t.line.name || v.name || "", at: t.departure_time.text,
+        from: t.departure_stop.name, to: t.arrival_stop.name, stops: t.num_stops };
+    });
+    return { dep: hhmm_(leg.departure_time.value), arr: hhmm_(leg.arrival_time.value), depMin: remToMin_(hhmm_(leg.departure_time.value)),
+      dur: Math.round(leg.duration.value / 60), steps: steps };
+  }).filter(Boolean).sort(function (a, b) { return b.depMin - a.depMin; }).slice(0, 3);
+
+  var car = null, cr = directions_(from.q, o.loc, Maps.DirectionFinder.Mode.DRIVING)[0];
+  if (cr) { var cl = cr.legs[0], cd = Math.round((cl.duration_in_traffic || cl.duration).value / 60); car = { dur: cd, km: cl.distance.text, depMin: arriveMin - cd }; }
+
+  var plan = { from: from, arriveMin: arriveMin, transit: transit, car: car,
+    links: { transit: mapsLink_(from.q, o.loc, "transit"), car: mapsLink_(from.q, o.loc, "driving"), here: mapsLink_(null, o.loc, "transit") } };
+  cache.put(ck, JSON.stringify(plan), 600);
+  return plan;
+}
+
+// When to leave: the latest transit departure that still arrives in time, else the car.
+function leaveMin_(plan) { return plan.transit.length ? plan.transit[0].depMin : plan.car ? plan.car.depMin : null; }
+function linesOf_(opt) { return opt.steps.filter(function (s) { return s.line; }).map(function (s) { return s.icon + " " + s.line; }).join(" + "); }
+
+function stepsText_(opt) {
+  return opt.steps.map(function (s) {
+    return s.line ? s.icon + " <b>" + esc_(s.line) + "</b> " + esc_(s.at) + " din " + esc_(s.from) + (s.stops ? " (" + s.stops + " stații)" : "")
+      : "🚶 " + s.min + " min";
+  }).join(" → ");
+}
+
+function tgRoutes_(plan) {
+  var t = "🧭 <b>CUM AJUNGI</b> <i>(" + esc_(plan.from.label) + " · să fii acolo la " + fmtMin_(plan.arriveMin) + ")</i>\n";
+  t += plan.transit.length
+    ? plan.transit.map(function (x, i) {
+        return (i ? "" : "⭐ ") + "<b>Pleci " + x.dep + " → ajungi " + x.arr + "</b> · " + fmtDur_(x.dur) + "\n   " + stepsText_(x);
+      }).join("\n")
+    : "🚌 Nu am găsit transport în comun care să ajungă la timp.";
+  if (plan.car) t += "\n🚗 <b>Cu mașina: " + fmtDur_(plan.car.dur) + "</b> (" + esc_(plan.car.km) + ") · pleci la <b>" + fmtMin_(plan.car.depMin) + "</b>";
+  return t;
+}
+
+function routeButtons_(plan) {
+  return [[{ text: "🚌 Transport în comun", url: plan.links.transit }, { text: "🚗 Cu mașina", url: plan.links.car }],
+    [{ text: "📍 Traseu de unde sunt acum", url: plan.links.here }]];
+}
+
+function emailRoutes_(plan) {
+  var card = function (x, best) {
+    return '<div style="margin:0 0 8px;padding:12px 14px;border-radius:12px;background:' + (best ? '#ECFDF5;border:2px solid #16A34A' : '#F6F8FA;border:1px solid #E2E8F0') + ';">' +
+      '<div style="font-size:18px;font-weight:900;color:#0B0F14;">' + (best ? '⭐ ' : '') + 'Pleci ' + x.dep + ' → ajungi ' + x.arr +
+      ' <span style="font-size:14px;font-weight:600;color:#475569;">· ' + fmtDur_(x.dur) + '</span></div>' +
+      '<div style="font-size:14px;color:#0B0F14;margin-top:6px;line-height:1.6;">' + stepsText_(x) + '</div></div>';
+  };
+  return '<div style="margin:22px 0 10px;font-size:13px;font-weight:800;letter-spacing:2px;color:#64748B;">🧭 CUM AJUNGI · ' +
+    esc_(plan.from.label.toUpperCase()) + ' · ACOLO LA ' + fmtMin_(plan.arriveMin) + '</div>' +
+    (plan.transit.length ? plan.transit.map(function (x, i) { return card(x, !i); }).join("")
+      : '<div style="font-size:15px;color:#0B0F14;">🚌 Nu am găsit transport în comun care să ajungă la timp.</div>') +
+    (plan.car ? '<div style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EFF6FF;border:1px solid #BFDBFE;font-size:17px;font-weight:800;color:#0B0F14;">🚗 Cu mașina: ' +
+      fmtDur_(plan.car.dur) + ' (' + esc_(plan.car.km) + ') · pleci la ' + fmtMin_(plan.car.depMin) + '</div>' : '') +
+    emailButton_("🚌 TRANSPORT ÎN COMUN", plan.links.transit, true) + emailButton_("🚗 CU MAȘINA", plan.links.car, false) +
+    emailButton_("📍 DE UNDE SUNT ACUM", plan.links.here, false);
+}
+
+// Telegram reply keyboard that lets you share your location with one tap.
+function askLocation_(cfg) {
+  sendTelegram_(cfg, "📍 <b>Nu ești acasă?</b> Trimite-mi locația și îți recalculez traseul de acolo.", {
+    keyboard: { keyboard: [[{ text: "📍 Trimite locația mea", request_location: true }], [{ text: "🏠 Sunt acasă" }]],
+      one_time_keyboard: true, resize_keyboard: true, input_field_placeholder: "Unde ești acum?" } });
+}
+
+// A route message on its own: after you send a location ("route") or when it's time to go ("leave").
+function sendTrip_(S, cfg, o, plan, kind) {
+  var leave = kind === "leave", cat = catOf_(S, o.cat), best = plan.transit[0];
+  var head = leave ? "🏃🏃 <b>PLEACĂ ACUM!</b> 🏃🏃" : "🧭 <b>TRASEU DE UNDE EȘTI</b>";
+  var tg = head + "\n" + LINE + "\n<b>" + esc_(o.title.toUpperCase()) + "</b> · începe la <b>" + esc_(o.start) + "</b>\n📍 " + esc_(o.loc) + "\n" + LINE + "\n" +
+    (leave && best ? "⚡ <b>" + linesOf_(best) + " — pleci la " + best.dep + "!</b>\n\n" : "") + tgRoutes_(plan);
+  sendTelegram_(cfg, tg, { buttons: routeButtons_(plan), effect: leave ? FX.fire : null });
+  var bg = leave ? "#DC2626" : "#0F766E";
+  var h = '<div style="font-size:13px;font-weight:800;letter-spacing:3px;">' + (leave ? '🏃 PLEACĂ ACUM' : '🧭 TRASEU NOU') + '</div>' +
+    '<div style="font-size:' + (leave ? 52 : 40) + 'px;line-height:1.05;font-weight:900;margin:10px 0 6px;">' +
+    (leave && best ? 'PLEACĂ LA ' + best.dep : esc_(o.title)) + '</div>' +
+    '<div style="font-size:17px;font-weight:700;">' + esc_(o.title) + ' · ' + esc_(o.start) + ' · ' + esc_(o.loc) + '</div>';
+  sendEmail_(cfg, (leave ? "🏃 PLEACĂ ACUM: " : "🧭 Traseu: ") + o.title + " · " + o.start + (best ? " · " + linesOf_(best) + " la " + best.dep : ""),
+    emailShell_("Cum ajungi la " + o.title, bg, h, '<div style="height:8px;background:' + color_(cat.color) + ';border-radius:4px;"></div>' + emailRoutes_(plan)));
+}
+
+// Reads what you sent the bot since the last run (polling: this script has no public endpoint).
+function processUpdates_(S, cfg, date, minsNow) {
+  if (!cfg.token || !cfg.chatId) return;
+  var p = PropertiesService.getScriptProperties(), offset = Number(p.getProperty("tgOffset") || 0);
+  var res = UrlFetchApp.fetch("https://api.telegram.org/bot" + cfg.token + "/getUpdates?timeout=0&offset=" + offset +
+    "&allowed_updates=" + encodeURIComponent('["message","edited_message"]'), { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) { console.error("getUpdates error: " + res.getContentText()); return; }
+  var got = null, moved = null;
+  (JSON.parse(res.getContentText()).result || []).forEach(function (u) {
+    offset = Math.max(offset, u.update_id + 1);
+    var m = u.message || u.edited_message;
+    if (!m || String(m.chat.id) !== String(cfg.chatId)) return; // only your own chat may set the location
+    if (m.location) {
+      moved = { lat: m.location.latitude, lng: m.location.longitude };
+      if (u.message) got = "loc"; // live-location updates refresh the point without a reply each time
+    } else if (u.message && /acas/i.test(m.text || "")) { got = "home"; moved = null; }
+  });
+  p.setProperty("tgOffset", String(offset));
+  if (moved) p.setProperty("lastLocation", JSON.stringify({ lat: moved.lat, lng: moved.lng, ts: Date.now(), time: Utilities.formatDate(new Date(), TZ, "HH:mm") }));
+  if (got === "home") p.deleteProperty("lastLocation");
+  if (!got) return;
+
+  var next = occurrencesOn_(S, date).filter(function (o) { return !o.done && o.s > minsNow && isAddress_(o.loc); })[0];
+  var plan = next && planFor_(next, date);
+  if (!plan) {
+    sendTelegram_(cfg, "✅ Am notat " + (got === "home" ? "că ești acasă" : "locația ta") + ". Azi nu mai ai evenimente cu adresă.", { keyboard: { remove_keyboard: true } });
+    return;
+  }
+  sendTrip_(S, cfg, next, plan, "route");
 }
 
 /* ---------- 1. event reminder ---------- */
@@ -192,17 +368,18 @@ function urgency_(diff) {
 
 function sendReminder_(S, cfg, o, diff) {
   var cat = catOf_(S, o.cat), u = urgency_(diff), place = placeLink_(o.loc);
+  var plan = planFor_(o, o.key.split("@")[1]);
   var tg = u.tag + " <b>" + u.head + " — ÎN " + fmtDur_(diff).toUpperCase() + "!</b> " + u.tag + "\n" + LINE + "\n" +
     "<b>" + esc_(o.title.toUpperCase()) + "</b>\n" + LINE + "\n\n" +
     "⏰ <b>" + esc_(o.start) + " → " + esc_(o.end) + "</b>" + (len_(o) ? "  <i>(" + fmtDur_(len_(o)) + ")</i>" : "") + "\n" +
     (o.loc ? "📍 <b>" + esc_(o.loc) + "</b>\n" : "") +
     square_(cat.color) + " " + esc_(cat.name) + "\n" +
     (o.note ? "\n<blockquote>" + esc_(o.note) + "</blockquote>\n" : "") +
-    "\n<b>" + u.push + "</b>";
-  var buttons = [];
-  if (place) buttons.push([{ text: place.text, url: place.url }]);
+    "\n<b>" + u.push + "</b>" + (plan ? "\n\n" + tgRoutes_(plan) : "");
+  var buttons = plan ? routeButtons_(plan) : place ? [[{ text: place.text, url: place.url }]] : [];
   buttons.push([{ text: "📅 Deschide orarul", url: APP_URL }]);
   sendTelegram_(cfg, tg, { buttons: buttons, effect: FX.fire });
+  if (plan && plan.from.home) askLocation_(cfg);
 
   var head = '<div style="font-size:13px;font-weight:800;letter-spacing:3px;opacity:.9;">' + u.tag + ' ' + u.head + '</div>' +
     '<div style="font-size:60px;line-height:1;font-weight:900;margin:10px 0 4px;letter-spacing:-1px;">ÎN ' + esc_(fmtDur_(diff).toUpperCase()) + '</div>' +
@@ -215,7 +392,8 @@ function sendReminder_(S, cfg, o, diff) {
     '<div style="font-size:15px;color:#475569;margin-top:6px;">' + esc_(cat.name) + '</div>' +
     (o.note ? '<div style="margin-top:14px;padding:12px 14px;background:#FFF7ED;border-left:4px solid ' + u.bg + ';border-radius:8px;font-size:15px;color:#0B0F14;white-space:pre-wrap;">' + esc_(o.note) + '</div>' : '') +
     '<div style="margin-top:18px;padding:14px;background:' + u.bg + ';color:#FFFFFF;border-radius:12px;font-weight:800;font-size:16px;text-align:center;">' + esc_(u.push) + '</div>' +
-    (place ? emailButton_(place.text, place.url, true) : '') + emailButton_("📅 DESCHIDE ORARUL", APP_URL, !place);
+    (plan ? emailRoutes_(plan) + emailButton_("📅 DESCHIDE ORARUL", APP_URL, false)
+      : (place ? emailButton_(place.text, place.url, true) : '') + emailButton_("📅 DESCHIDE ORARUL", APP_URL, !place));
   sendEmail_(cfg, u.tag + " ÎN " + fmtDur_(diff).toUpperCase() + ": " + o.title + " · " + o.start + (o.loc ? " · " + o.loc : ""),
     emailShell_(o.title + " începe la " + o.start, u.bg, head, body));
 }
@@ -233,6 +411,13 @@ function sendMorning_(S, cfg, date, minsNow) {
   var occs = occurrencesOn_(S, date), busy = occs.reduce(function (a, o) { return a + len_(o); }, 0);
   var first = occs[0], gaps = freeGaps_(occs);
   var gapTxt = gaps.map(function (g) { return fmtMin_(g[0]) + "–" + fmtMin_(g[1]); }).join(", ");
+  // When to leave for each upcoming event that has an address.
+  var go = {};
+  occs.forEach(function (o) {
+    var p = o.s > minsNow && planFor_(o, date); if (!p) return;
+    var t = p.transit[0];
+    go[o.key] = (t ? "🚏 pleci " + t.dep + " cu " + linesOf_(t) : "") + (t && p.car ? " · " : "") + (p.car ? "🚗 pleci " + fmtMin_(p.car.depMin) + " (" + fmtDur_(p.car.dur) + ")" : "");
+  });
   var tg = "☀️☀️ <b>BRIEF DE DIMINEAȚĂ</b> ☀️☀️\n<b>" + dayLabel_(date).toUpperCase() + "</b>\n" + LINE + "\n";
   if (!occs.length) {
     tg += "\n🌴 <b>ZI LIBERĂ!</b> Nimic programat azi.\nOdihnește-te sau prinde din urmă ce ai amânat.";
@@ -242,7 +427,8 @@ function sendMorning_(S, cfg, date, minsNow) {
       (first.s > minsNow ? " <i>(în " + fmtDur_(first.s - minsNow) + ")</i>" : "") + "\n\n" +
       occs.map(function (o) {
         var cat = catOf_(S, o.cat), rem = !o.reminder || o.reminder.enabled !== false;
-        return square_(cat.color) + " <b>" + esc_(o.start) + "–" + esc_(o.end) + "</b>  " + esc_(o.title) + (o.loc ? "  · " + locLabel_(o.loc) : "") + (rem ? " 🔔" : "");
+        return square_(cat.color) + " <b>" + esc_(o.start) + "–" + esc_(o.end) + "</b>  " + esc_(o.title) + (o.loc ? "  · " + locLabel_(o.loc) : "") + (rem ? " 🔔" : "") +
+          (go[o.key] ? "\n      <i>" + go[o.key] + "</i>" : "");
       }).join("\n") +
       (gaps.length ? "\n\n🟢 <b>Liber:</b> " + gapTxt : "") +
       "\n" + LINE + "\n💪 <b>Hai că poți! Spor azi!</b>";
@@ -254,7 +440,7 @@ function sendMorning_(S, cfg, date, minsNow) {
     '<div style="font-size:17px;font-weight:700;">' + (occs.length ? occs.length + (occs.length === 1 ? " eveniment" : " evenimente") + " · " + fmtDur_(busy) + " ocupat" : "Zi liberă 🌴") + '</div>';
   var body = occs.length
     ? '<div style="font-size:15px;color:#475569;margin-bottom:12px;">Primul: <b style="color:#0B0F14;">' + esc_(first.title) + ' la ' + esc_(first.start) + '</b></div>' +
-      occs.map(function (o) { return emailRow_(S, o); }).join("") +
+      occs.map(function (o) { return emailRow_(S, o, null, go[o.key]); }).join("") +
       (gaps.length ? '<div style="margin-top:12px;font-size:15px;color:#0B0F14;">🟢 <b>Ferestre libere:</b> ' + gapTxt + '</div>' : '')
     : '<div style="font-size:18px;color:#0B0F14;">Nimic programat azi. Bucură-te de zi! 🌴</div>';
   sendEmail_(cfg, "☀️ Brief: " + dayLabel_(date) + (occs.length ? " · " + occs.length + (occs.length === 1 ? " eveniment" : " evenimente") + ", primul la " + first.start : " · zi liberă"),
@@ -323,14 +509,22 @@ function checkReminders() {
   var cutoff = Date.now() - 3 * 864e5;
   Object.keys(sent).forEach(function (k) { if (sent[k] < cutoff) delete sent[k]; });
 
+  processUpdates_(S, cfg, date, minsNow); // a location you sent the bot
+
   occurrencesOn_(S, date).forEach(function (o) {
     if (o.done || (o.reminder && o.reminder.enabled === false)) return;
     var remMins = (o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30;
     var diff = o.s - minsNow;
     // Fire once anywhere inside the lead window, so a late or skipped trigger run still sends.
-    if (diff <= 0 || diff > remMins || sent[o.key]) return;
-    sendReminder_(S, cfg, o, diff);
-    sent[o.key] = Date.now();
+    if (diff > 0 && diff <= remMins && !sent[o.key]) { sendReminder_(S, cfg, o, diff); sent[o.key] = Date.now(); }
+
+    // "Pleacă acum!": around the departure time of the route that still gets you there in time.
+    var lk = "leave_" + o.key;
+    if (sent[lk] || !isAddress_(o.loc) || diff <= 0 || diff > PLAN_WINDOW) return;
+    var plan = planFor_(o, date), lv = plan && leaveMin_(plan);
+    if (lv == null || minsNow < lv - 5 || minsNow > lv + 10) return;
+    sendTrip_(S, cfg, o, plan, "leave");
+    sent[lk] = Date.now();
   });
 
   // Each summary fires once, at the first run within the hour after its time.
