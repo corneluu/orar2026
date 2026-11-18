@@ -20,6 +20,7 @@
 
 var TZ = "Europe/Bucharest";
 var APP_URL = "https://corneluu.github.io/orar2026/";
+var LOGO_URL = APP_URL + "icon-192.png"; // emails can't embed images reliably, so they load the app's icon
 
 function installReminderTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
@@ -168,9 +169,14 @@ function emailShell_(preheader, headBg, headHtml, bodyHtml) {
   return '<div style="display:none;max-height:0;overflow:hidden;">' + esc_(preheader) + '</div>' +
     '<div style="background:#0B0F14;padding:24px 12px;' + F + '">' +
     '<div style="max-width:560px;margin:0 auto;border-radius:20px;overflow:hidden;background:#FFFFFF;">' +
-    '<div style="background:' + headBg + ';padding:28px 24px;color:#FFFFFF;">' + headHtml + '</div>' +
+    '<div style="background:' + headBg + ';padding:20px 24px 28px;color:#FFFFFF;">' +
+    '<div style="margin-bottom:16px;font-size:15px;font-weight:800;letter-spacing:.3px;">' +
+    '<img src="' + LOGO_URL + '" width="32" height="32" alt="" style="width:32px;height:32px;border-radius:9px;vertical-align:middle;margin-right:10px;border:0;">' +
+    '<span style="vertical-align:middle;">Orarul meu</span></div>' + headHtml + '</div>' +
     '<div style="padding:24px;">' + bodyHtml + '</div>' +
-    '<div style="padding:14px 24px;background:#F1F4F8;color:#64748B;font-size:12px;">Orarul meu · notificare automată</div>' +
+    '<div style="padding:14px 24px;background:#F1F4F8;color:#64748B;font-size:12px;">' +
+    '<img src="' + LOGO_URL + '" width="16" height="16" alt="" style="width:16px;height:16px;border-radius:4px;vertical-align:middle;margin-right:6px;border:0;">' +
+    '<span style="vertical-align:middle;">Orarul meu · notificare automată</span></div>' +
     '</div></div>';
 }
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Orarul meu: a clock whose hands form a check mark, with an alert dot. Safe inside a circular crop. -->
+  <rect width="1024" height="1024" fill="#0B5E68"/>
+  <circle cx="500" cy="540" r="282" fill="none" stroke="#FFFFFF" stroke-width="72"/>
+  <path d="M378 548 L470 640 L652 430" fill="none" stroke="#FFFFFF" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="742" cy="306" r="118" fill="#0B5E68"/>
+  <circle cx="742" cy="306" r="86" fill="#FF5A1F"/>
+</svg>
