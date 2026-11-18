@@ -1696,7 +1696,11 @@ const longDate = d => { const x = parse(d); return DAYS[dow(d)] + ", " + x.getDa
 const shortDate = d => { const x = parse(d); return x.getDate() + " " + MS[x.getMonth()]; };
 const fmtLeft = m => m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + (m % 60) + " min" : "");
 // Backend (Code.gs) treats a missing reminder as ON, 30 min, so the UI shows it the same way.
-const remOf = o => (o.reminder && o.reminder.enabled === false) ? 0 : ((o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30);
+// Up to 3 reminders per event: reminder.list (minutes before, longest first); old data has only reminder.mins.
+const REM_COUNT = 3;
+const remLeads = r => (r && Array.isArray(r.list) && r.list.length ? r.list : [(r && r.mins > 0) ? r.mins : 30]).slice().sort((a, b) => b - a);
+const remOf = o => (o.reminder && o.reminder.enabled === false) ? [] : remLeads(o.reminder);
+const remText = l => l.map(m => remLong(m)).join(", ").replace(/, ([^,]*)$/, " și $1");
 const REM_MAX = 7 * 1440; // Code.gs looks 7 days ahead
 const remShort = m => m >= 1440 && m % 1440 === 0 ? (m / 1440) + "z" : m < 60 ? m + "m" : (m % 60 ? Math.floor(m / 60) + "h" + pad(m % 60) : (m / 60) + "h");
 const remLong = m => m >= 1440 && m % 1440 === 0 ? (m === 1440 ? "o zi" : (m / 1440) + " zile")
@@ -1860,7 +1864,7 @@ function agendaRow(o, opts = {}) {
   const rem = remOf(o);
   const meta = [];
   if (o.loc) meta.push(h("span", null, ic("pin"), locLink(o.loc).text));
-  if (rem) meta.push(h("span", { title: `Reminder cu ${remLong(rem)} înainte` }, ic("bell"), remShort(rem)));
+  if (rem.length) meta.push(h("span", { title: `Reminder cu ${remText(rem)} înainte` }, ic("bell"), rem.map(remShort).join(" · ")));
   const btn = h("button", {
     class: "row" + (o.done ? " done" : "") + (running ? " run" : "") + (opts.dim ? " dim" : ""),
     style: "--c:" + c.color
@@ -1947,7 +1951,7 @@ function heroCard(o) {
   const rem = remOf(o), L = locLink(o.loc);
   const meta = [h("span", { class: "cat-tag", style: "--c:" + c.color }, h("i"), c.name)];
   if (L) meta.push(h("span", null, ic("pin"), L.text));
-  if (rem) meta.push(h("span", { title: `Reminder cu ${remLong(rem)} înainte` }, ic("bell"), remShort(rem)));
+  if (rem.length) meta.push(h("span", { title: `Reminder cu ${remText(rem)} înainte` }, ic("bell"), rem.map(remShort).join(" · ")));
   return h("section", { class: "hero" + (running ? " run" : ""), style: "--c:" + c.color, "aria-label": running ? "Eveniment în desfășurare" : "Următorul eveniment" },
     h("p", { class: "h-stat" }, running ? h("span", { class: "live" }) : ic("clock"), stat),
     h("h2", { class: "h-title" }, h("button", { class: "h-open", onclick: () => openDetails(o) }, o.title)),
@@ -2419,7 +2423,7 @@ function openDetails(o) {
     if (o.loc) rows.push(h("div", { class: "dt-row" }, ic("pin"), h("div", null, h("b", null, "Locație"), h("span", null, o.loc))));
     if (o.note) rows.push(h("div", { class: "dt-row" }, ic("note"), h("div", null, h("b", null, "Notițe"), h("span", null, o.note))));
     rows.push(h("div", { class: "dt-row" }, ic("bell"), h("div", null, h("b", null, "Reminder"),
-      h("span", null, rem ? `Cu ${remLong(rem)} înainte, pe Telegram și email` : "Dezactivat"))));
+      h("span", null, rem.length ? `Cu ${remText(rem)} înainte, pe Telegram și email` : "Dezactivat"))));
 
     box.append(
       h("div", { class: "sh-head" }, h("span", { class: "cat-tag strong", style: "--c:" + c.color }, h("i"), c.name), h("span", { style: "flex:1" }), closeBtn(close)),
@@ -2638,9 +2642,9 @@ function openEditor(o) {
     asking: false,
     wheel: null,
     remindEnabled: (occ && occ.reminder) ? occ.reminder.enabled !== false : (base && base.reminder ? base.reminder.enabled !== false : true),
-    remindMins: (occ && occ.reminder && occ.reminder.mins) ? occ.reminder.mins : (base && base.reminder && base.reminder.mins ? base.reminder.mins : 30)
+    remindList: remLeads((occ && occ.reminder) || (base && base.reminder))
   };
-  const FIELD_KEYS = ["title", "cat", "start", "end", "loc", "note", "remindEnabled", "remindMins"];
+  const FIELD_KEYS = ["title", "cat", "start", "end", "loc", "note", "remindEnabled", "remindList"];
   const REC_KEYS = ["days", "every", "from", "until"];
   const snapOf = keys => JSON.stringify(keys.map(k => k === "days" ? [...f.days].sort() : k === "title" ? f.title.trim() : f[k]));
   const f0 = snapOf(FIELD_KEYS), r0 = snapOf(REC_KEYS);
@@ -2735,18 +2739,23 @@ function openEditor(o) {
 
       // 4. Location, notes, reminder
       const presets = [15, 30, 60, 120, 1440, 2880];
-      // Custom lead: a number plus a unit (min / ore / zile), up to 7 days.
-      const unit = f.remindMins % 1440 === 0 ? 1440 : f.remindMins % 60 === 0 ? 60 : 1;
-      const numIn = h("input", { class: "inp", type: "number", min: "1", step: "any", inputmode: "decimal", style: "width:92px;min-height:44px",
-        "aria-label": "Cât de devreme (personalizat)", value: String(f.remindMins / unit) });
-      const unitSel = h("select", { class: "inp", style: "width:auto;min-height:44px", "aria-label": "Unitate" },
-        ...[[1, "minute"], [60, "ore"], [1440, "zile"]].map(([v, t]) => h("option", { value: String(v), selected: v === unit }, t)));
-      const applyCustom = () => {
-        const m = Math.round(parseFloat(numIn.value) * Number(unitSel.value));
-        if (m > 0 && m <= REM_MAX) { f.remindMins = m; draw(); }
+      // Up to REM_COUNT reminders: tap chips to toggle, or add a custom one (number + unit, max 7 days).
+      const toggleRem = m => {
+        const l = f.remindList;
+        if (l.includes(m)) { if (l.length > 1) f.remindList = l.filter(x => x !== m); }
+        else if (l.length < REM_COUNT) f.remindList = [...l, m].sort((a, b) => b - a);
+        else { f.remindMax = true; draw(); return; }
+        f.remindMax = false; draw();
       };
-      numIn.addEventListener("change", applyCustom);
-      unitSel.addEventListener("change", applyCustom);
+      const numIn = h("input", { class: "inp", type: "number", min: "1", step: "any", inputmode: "decimal", style: "width:84px;min-height:44px",
+        "aria-label": "Cât de devreme (personalizat)", placeholder: "3" });
+      const unitSel = h("select", { class: "inp", style: "width:auto;min-height:44px", "aria-label": "Unitate" },
+        ...[[1, "minute"], [60, "ore"], [1440, "zile"]].map(([v, t]) => h("option", { value: String(v), selected: v === 60 }, t)));
+      const addCustom = () => {
+        const m = Math.round(parseFloat(numIn.value) * Number(unitSel.value));
+        if (m > 0 && m <= REM_MAX && !f.remindList.includes(m)) toggleRem(m);
+      };
+      const remChips = [...presets, ...f.remindList.filter(m => !presets.includes(m))];
       kids.push(h("div", { class: "grp" },
         h("div", { class: "fld" }, h("label", { class: "lab", for: "f-loc" }, "Locație sau link"),
           h("input", { id: "f-loc", class: "inp", type: "text", placeholder: "Sala 304, adresă sau link Meet / Zoom", value: f.loc, oninput: e => { f.loc = e.target.value; } })),
@@ -2754,12 +2763,15 @@ function openEditor(o) {
           h("textarea", { id: "f-note", class: "inp", placeholder: "Ce ai de pregătit, materiale, detalii utile", value: f.note, oninput: e => { f.note = e.target.value; } })),
         h("div", { class: "fld" },
           h("label", { class: "sw-row" },
-            h("span", null, h("b", null, "Reminder"), h("small", null, f.remindEnabled ? `Cu ${remLong(f.remindMins)} înainte, pe Telegram și email` : "Dezactivat")),
+            h("span", null, h("b", null, `Remindere (${f.remindEnabled ? f.remindList.length : 0}/${REM_COUNT})`),
+              h("small", null, f.remindEnabled ? `Cu ${remText(f.remindList)} înainte, pe Telegram și email` : "Dezactivat")),
             sw(f.remindEnabled, v => { f.remindEnabled = v; draw(); }, "Reminder")),
           f.remindEnabled ? h("div", { class: "chips", style: "margin-top:4px" },
-            ...presets.map(m => h("button", { class: "chip-btn", "aria-pressed": String(f.remindMins === m), onclick: () => { f.remindMins = m; draw(); } }, remLong(m)))) : null,
+            ...remChips.map(m => h("button", { class: "chip-btn", "aria-pressed": String(f.remindList.includes(m)), onclick: () => toggleRem(m) }, remLong(m)))) : null,
+          f.remindEnabled && f.remindMax ? h("p", { class: "lab", role: "status", style: "margin:6px 0 0" }, `Maxim ${REM_COUNT} remindere: scoate unul ca să alegi altul.`) : null,
           f.remindEnabled ? h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px" },
-            h("span", { class: "lab", style: "margin:0" }, "Sau:"), numIn, unitSel, h("span", { class: "lab", style: "margin:0" }, "înainte (max 7 zile)")) : null)));
+            h("span", { class: "lab", style: "margin:0" }, "Altul:"), numIn, unitSel,
+            h("button", { class: "chip-btn", onclick: addCustom, disabled: f.remindList.length >= REM_COUNT }, "+ Adaugă")) : null)));
 
       // 5. Done state
       if (!isNew) {
@@ -2829,7 +2841,7 @@ function openEditor(o) {
         end: f.end,
         loc: f.loc ? f.loc.trim() : "",
         note: f.note.trim(),
-        reminder: { enabled: f.remindEnabled, mins: f.remindMins }
+        reminder: { enabled: f.remindEnabled, mins: Math.min(...f.remindList), list: [...f.remindList] }
       };
       const recDef = { days: [...f.days], every: f.every, from: f.from, until: f.until || null };
       let key = null;

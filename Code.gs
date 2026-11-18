@@ -553,10 +553,15 @@ function checkReminders() {
     var d = addDays_(date, day);
     occurrencesOn_(S, d).forEach(function (o) {
       if (o.done || (o.reminder && o.reminder.enabled === false)) return;
-      var remMins = (o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30;
       var diff = day * 1440 + o.s - minsNow;
-      // Fire once anywhere inside the lead window, so a late or skipped trigger run still sends.
-      if (diff > 0 && diff <= remMins && !sent[o.key]) { sendReminder_(S, cfg, o, diff); sent[o.key] = Date.now(); }
+      // Up to 3 leads per event (reminder.list); older events have a single reminder.mins and keep their old sent key.
+      var multi = o.reminder && Array.isArray(o.reminder.list) && o.reminder.list.length;
+      var leads = multi ? o.reminder.list : [(o.reminder && o.reminder.mins > 0) ? o.reminder.mins : 30];
+      var keyOf = function (m) { return multi ? o.key + "#" + m : o.key; };
+      // A lead fires once anywhere inside its window, so a late run still sends; if several are due at once
+      // (event added late), send one message and mark them all.
+      var due = leads.filter(function (m) { return diff > 0 && diff <= m && !sent[keyOf(m)]; });
+      if (due.length) { sendReminder_(S, cfg, o, diff); due.forEach(function (m) { sent[keyOf(m)] = Date.now(); }); }
 
       // "Pleacă acum!": around the departure time of the route that still gets you there in time (today only).
       var lk = "leave_" + o.key;
