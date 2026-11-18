@@ -229,15 +229,38 @@ function directions_(from, to, mode, arriveBy) {
   } catch (err) { console.error("Directions error: " + err.message); return []; }
 }
 
+// Text address → "lat,lng" + Google's full address. A short name ("Stayfit gym") is retried within Timișoara.
+function place_(q) {
+  if (/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(q)) return { ll: q, name: q };
+  var cache = CacheService.getScriptCache(), ck = ("geo_" + q).slice(0, 240), hit = cache.get(ck);
+  if (hit) return JSON.parse(hit);
+  var tries = /timi[sș]/i.test(q) ? [q] : [q, q + ", Timișoara"], found = null;
+  for (var i = 0; i < tries.length && !found; i++) {
+    try {
+      var r = Maps.newGeocoder().setRegion("ro").setLanguage("ro").geocode(tries[i]);
+      if (r.status === "OK" && r.results.length) {
+        var g = r.results[0];
+        found = { ll: g.geometry.location.lat + "," + g.geometry.location.lng, name: g.formatted_address };
+      }
+    } catch (err) { console.error("Geocode error: " + err.message); }
+  }
+  if (!found) { console.log("Adresa nu a fost găsită pe Google Maps: \"" + q + "\" — scrie strada și orașul."); return null; }
+  console.log("Adresă: \"" + q + "\" → " + found.name);
+  cache.put(ck, JSON.stringify(found), 21600);
+  return found;
+}
+
 // Transit options that arrive in time (latest departure first) + the car, cached 10 min per event and start point.
 function planFor_(o, date) {
   if (!isAddress_(o.loc)) return null;
   var from = origin_(); if (!from) return null;
   var cache = CacheService.getScriptCache(), ck = ("plan_" + o.key + "_" + from.q).slice(0, 240);
   var hit = cache.get(ck); if (hit) return JSON.parse(hit);
+  var a = place_(from.q), b = place_(o.loc);
+  if (!a || !b) return null;
 
   var arriveMin = o.s - ARRIVE_EARLY;
-  var transit = directions_(from.q, o.loc, Maps.DirectionFinder.Mode.TRANSIT, atTime_(date, arriveMin)).map(function (r) {
+  var transit = directions_(a.ll, b.ll, Maps.DirectionFinder.Mode.TRANSIT, atTime_(date, arriveMin)).map(function (r) {
     var leg = r.legs[0];
     if (!leg.departure_time || !leg.arrival_time) return null; // walking-only answer
     if (leg.departure_time.value * 1000 < Date.now() - 10 * 60000) return null; // already left
@@ -251,11 +274,11 @@ function planFor_(o, date) {
       dur: Math.round(leg.duration.value / 60), steps: steps };
   }).filter(Boolean).sort(function (a, b) { return b.depMin - a.depMin; }).slice(0, 3);
 
-  var car = null, cr = directions_(from.q, o.loc, Maps.DirectionFinder.Mode.DRIVING)[0];
+  var car = null, cr = directions_(a.ll, b.ll, Maps.DirectionFinder.Mode.DRIVING)[0];
   if (cr) { var cl = cr.legs[0], cd = Math.round((cl.duration_in_traffic || cl.duration).value / 60); car = { dur: cd, km: cl.distance.text, depMin: arriveMin - cd }; }
 
   var plan = { from: from, arriveMin: arriveMin, transit: transit, car: car,
-    links: { transit: mapsLink_(from.q, o.loc, "transit"), car: mapsLink_(from.q, o.loc, "driving"), here: mapsLink_(null, o.loc, "transit") } };
+    links: { transit: mapsLink_(a.name, b.name, "transit"), car: mapsLink_(a.name, b.name, "driving"), here: mapsLink_(null, b.name, "transit") } };
   cache.put(ck, JSON.stringify(plan), 600);
   return plan;
 }
