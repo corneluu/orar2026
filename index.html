@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#090D12" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F1F4F8" media="(prefers-color-scheme: light)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://api.github.com https://api.telegram.org; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>Orarul meu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2127,9 +2129,17 @@ function openColorPicker(anchorEl, currentHex, onPick) {
 /* ==========================================================================
    PERSISTENCE & GITHUB SYNC (Zero Data Loss)
    ========================================================================== */
-const REPO = "corneluu/orar2026";
+// Calendar data lives in a PRIVATE repo; this site's repo is public (GitHub Pages).
+const REPO = "corneluu/orar2026-data";
 const FILE = "data.json";
 const GH_API = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+// Secrets and phone stay on this device only, never in synced data.
+const SECRET_NOTIF_KEYS = ["telegramBotToken", "resendApiKey", "phone"];
+function publicNotifs(o) {
+  const r = { ...(o && typeof o === "object" ? o : {}) };
+  SECRET_NOTIF_KEYS.forEach(k => delete r[k]);
+  return r;
+}
 const TOK_KEY = "orar:gh_token";
 let ghToken = localStorage.getItem(TOK_KEY) || "";
 let fileSha = "";
@@ -2285,7 +2295,7 @@ function normalize(o) {
     events,
     ov,
     done: d.done && typeof d.done === "object" ? d.done : {},
-    notifications: d.notifications && typeof d.notifications === "object" ? d.notifications : {}
+    notifications: publicNotifs(d.notifications)
   };
 }
 
@@ -3461,8 +3471,7 @@ function openSettings() {
 function openNotifs() {
   const N_KEY = "orar:notifs";
   let n = Object.assign({
-    email: "you@example.com",
-    phone: "",
+    email: "",
     telegramBotToken: "",
     telegramChatId: "",
     notifyTelegram: true,
@@ -3478,7 +3487,7 @@ function openNotifs() {
 
   openModal((box, close) => {
     function saveN() {
-      S.notifications = { ...n };
+      S.notifications = publicNotifs(n);
       changed();
       try { localStorage.setItem(N_KEY, JSON.stringify(n)); } catch(e) {}
     }
@@ -3548,39 +3557,8 @@ function openNotifs() {
       btn.disabled = false;
     }
 
-    async function testEmail(btn) {
-      const email = (n.email || "").trim();
-      if (!email) { setFeedback(btn.parentNode, "error", "Introdu adresa de email mai întâi."); return; }
-      if (!ghToken) {
-        setFeedback(btn.parentNode, "error", "Conectează-te la GitHub mai întâi (butonul din header).");
-        return;
-      }
-      btn.disabled = true;
-      setFeedback(btn.parentNode, "loading", "Se declanșează prin GitHub Actions...");
-      try {
-        saveN();
-        const res = await fetch(
-          "https://api.github.com/repos/corneluu/orar2026/actions/workflows/reminders.yml/dispatches",
-          {
-            method: "POST",
-            headers: {
-              "Authorization": "Bearer " + ghToken,
-              "Accept": "application/vnd.github+json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ ref: "main", inputs: { test_mode: "true" } })
-          }
-        );
-        if (res.status === 204 || res.ok) {
-          setFeedback(btn.parentNode, "success", "Trimis! Verifică emailul în ~30-60 secunde.");
-        } else {
-          const r = await res.json().catch(() => ({ message: "HTTP " + res.status }));
-          throw new Error(r.message);
-        }
-      } catch(err) {
-        setFeedback(btn.parentNode, "error", "Eroare: " + err.message);
-      }
-      btn.disabled = false;
+    function testEmail(btn) {
+      setFeedback(btn.parentNode, "loading", "Testul de email se face din Apps Script: alege funcția testNotify → Run.");
     }
 
     function draw() {
@@ -3623,7 +3601,10 @@ function openNotifs() {
             placeholder: "1234567890:AAxxxxxxxxxxxxxxxxxx",
             value: n.telegramBotToken || "",
             oninput: e => { n.telegramBotToken = e.target.value.trim(); saveN(); }
-          })
+          }),
+          h("p", { style: "font-size:11.5px;color:var(--ink3);margin:4px 0 0;" },
+            "Stocat doar pe acest dispozitiv, pentru butonul de test. Reminderele folosesc tokenul din Apps Script (Script Properties)."
+          )
         ),
         h("div", { class: "fld", style: "margin-top:8px;" },
           h("label", { class: "lab" }, "Chat ID"),
@@ -3669,29 +3650,17 @@ function openNotifs() {
         h("div", { class: "fld", style: "margin-top:12px;" },
           h("label", { class: "lab" }, "Adresa Email"),
           h("input", {
-            class: "inp", type: "email",
-            placeholder: "adresa@gmail.com",
+            class: "inp", type: "email", multiple: true,
+            placeholder: "adresa1@gmail.com, adresa2@gmail.com",
             value: n.email || "",
             oninput: e => { n.email = e.target.value.trim(); saveN(); }
           })
-        ),
-        h("div", { class: "fld", style: "margin-top:8px;" },
-          h("label", { class: "lab" }, "Resend API Key"),
-          h("input", {
-            class: "inp", type: "password",
-            placeholder: "re_xxxxxxxxxxxxxxxxxxxxxxxx",
-            value: n.resendApiKey || "",
-            oninput: e => { n.resendApiKey = e.target.value.trim(); saveN(); }
-          }),
-          h("p", { style: "font-size:11.5px;color:var(--ink3);margin:4px 0 0;" },
-            "Obții gratuit de la resend.com (100 emailuri/zi). Stocată doar pe acest dispozitiv."
-          )
         ),
         emailFeedbackRow,
         h("details", { class: "notif-guide" },
           h("summary", null, "Cum configurezi Email-ul?"),
           h("p", { style: "font-size:12px;color:var(--ink2);margin:8px 0 0;line-height:1.8;" },
-            "Email-ul se trimite prin GitHub Actions (gratuit). Mergi la resend.com → înregistrează-te → copiază API Key → adaugă-l ca GitHub Secret cu numele RESEND_API_KEY."
+            "Email-urile se trimit din Google Apps Script, de pe contul tău Google. Destinatarii (unul sau mai mulți, separați prin virgulă) se setează în Apps Script → Project Settings → Script Properties → NOTIFICATION_EMAIL."
           )
         )
       );
@@ -3717,15 +3686,15 @@ function openNotifs() {
 
       // Secrets info section
       const secretsSection = h("div", { class: "notif-card" },
-        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:8px;" }, "GitHub Secrets (backend automat)"),
+        h("div", { style: "font-weight:700;font-size:14px;margin-bottom:8px;" }, "Secrete (backend Apps Script)"),
         h("p", { style: "font-size:12px;color:var(--ink2);margin:0 0 8px;line-height:1.7;" },
-          "Adaugă aceste secrete la: github.com → orar2026 → Settings → Secrets & Variables → Actions"
+          "Se setează în Apps Script → Project Settings → Script Properties. Nu le pune niciodată în cod sau în date."
         ),
         h("div", { style: "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11.5px;font-family:monospace;line-height:2;color:var(--ink2);" },
           h("div", null, "TELEGRAM_BOT_TOKEN"),
           h("div", null, "TELEGRAM_CHAT_ID"),
-          h("div", null, "RESEND_API_KEY"),
-          h("div", null, "NOTIFICATION_EMAIL = you@example.com")
+          h("div", null, "NOTIFICATION_EMAIL (separate prin virgulă)"),
+          h("div", null, "GITHUB_TOKEN (doar citire, repo orar2026-data)")
         )
       );
 
